@@ -1,0 +1,19 @@
+MS Estruturas 1.0.3 - Windows 10/11 de 64 bits
+
+1. Abra MS-Estruturas-1.0.3-Setup.exe e clique em Instalar.
+2. Abra MS Estruturas pelo atalho da área de trabalho.
+
+Não é necessário instalar Python nem baixar bibliotecas.
+Os arquivos internos ficam organizados em:
+%LOCALAPPDATA%\Programs\MS Estruturas
+
+Os seus projetos e relatórios são salvos no local escolhido no diálogo de
+salvamento. O primeiro local sugerido é Documentos\MS Estruturas.
+As preferências são locais do usuário e permanecem nas próximas utilizações.
+
+Para remover o programa, use Configurações do Windows > Aplicativos >
+MS Estruturas > Desinstalar. Seus projetos e preferências são preservados.
+
+Instalador local ainda sem assinatura digital.
+Criado por Matheus Schardosim
+schardosimmatheus@gmail.com

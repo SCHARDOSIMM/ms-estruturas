@@ -1,0 +1,28 @@
+MS Estruturas 1.0.3
+Criado por Matheus Schardosim
+
+Este aplicativo inclui o interpretador Python e as bibliotecas necessárias à
+interface e à geração dos relatórios. Não é necessário instalar Python.
+
+Bibliotecas de terceiros:
+- Python 3: Python Software Foundation License.
+- PyQt5 5.15.11: GNU General Public License v3 (Riverbank Computing Limited).
+- Qt 5.15.2: licenças de código aberto do Qt; consulte os textos incluídos.
+- PyQt5-sip 12.20.1: licença do SIP, incluída nesta pasta.
+- ReportLab 4.4.9: BSD, texto incluído.
+- Pillow 13.0.0: HPND, texto incluído.
+- charset-normalizer 3.5.2: MIT, texto incluído.
+- PyInstaller: bootloader com exceção de distribuição.
+
+Fontes dos componentes e respectivos avisos:
+https://www.python.org/downloads/source/
+https://pypi.org/project/PyQt5/5.15.11/
+https://download.qt.io/archive/qt/5.15/5.15.2/single/
+https://pypi.org/project/PyQt5-sip/12.20.1/
+https://pypi.org/project/reportlab/4.4.9/
+https://pypi.org/project/pillow/13.0.0/
+https://pypi.org/project/charset-normalizer/3.5.2/
+https://pyinstaller.org/
+
+As fontes do sistema Windows são usadas conforme disponíveis e não são
+distribuídas como arquivos de fontes dentro do aplicativo.

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecoplan-estrutural"
+version = "1.0.3"
+description = "Aplicativo desktop de análise de estruturas reticuladas"
+requires-python = ">=3.10"
+dependencies = ["PyQt5==5.15.11", "reportlab==4.4.9"]
+
+[project.gui-scripts]
+estrutural = "estrutural.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["estrutural*"]
+
+[tool.setuptools.package-data]
+"estrutural.ui" = ["assets/*.svg", "assets/*.ico"]
