@@ -26,13 +26,15 @@ O objetivo é organizar o caminho entre a definição de um modelo e a leitura d
 
 ## Instalação e guias
 
+[**Baixar o instalador e os guias da versão mais recente →**](https://github.com/SCHARDOSIMM/ms-estruturas/releases/latest)
+
 Os arquivos da versão são disponibilizados na área de **Releases** deste repositório:
 
 | Arquivo | Conteúdo |
 | --- | --- |
 | `MS-Estruturas-Setup.exe` | Instalador para Windows de 64 bits; não exige instalar Python. |
-| `Guia de Uso - MS Estruturas - PT-BR.pdf` | Guia em português, com 24 páginas. |
-| `User Guide - MS Estruturas - EN.pdf` | Guia em inglês, com 24 páginas. |
+| `Guia.de.Uso.-.MS.Estruturas.-.PT-BR.pdf` | Guia em português, com 24 páginas. |
+| `User.Guide.-.MS.Estruturas.-.EN.pdf` | Guia em inglês, com 24 páginas. |
 | `SHA256SUMS.txt` | Hashes para conferir a integridade dos três arquivos. |
 
 Baixe o instalador nos anexos da release, execute-o e abra o atalho **MS Estruturas**. Os arquivos automáticos “Source code” contêm os fontes do repositório; para instalar o aplicativo, escolha o arquivo `.exe`.
