@@ -4,7 +4,9 @@
 
 Aplicação desktop desenvolvida por **Matheus Schardosim** em Python para modelar estruturas de barras, aplicar vínculos e carregamentos e interpretar reações, esforços internos e deslocamentos.
 
-**Versão 1.0.3 · Windows 10/11 de 64 bits · Português e inglês**
+**Versão 1.0.4 · Windows 10/11 de 64 bits · Português, inglês e francês**
+
+O instalador, a interface e os resultados exportados estão disponíveis em português, inglês e francês. Selecione **Français** em Configurações ou use o botão de idioma (PT-BR → EN → FR). Consulte [terminologia e verificação do francês](docs/IDIOMA_FR.md).
 
 ![Interface do MS Estruturas com um exemplo de pórtico inclinado, cargas e reações de apoio](docs/images/interface.png)
 
@@ -20,9 +22,10 @@ O objetivo é organizar o caminho entre a definição de um modelo e a leitura d
 - Definição de nós, barras, apoios, molas, rótulas, materiais, seções e carregamentos, conforme a tipologia.
 - Análise elástica linear de primeira ordem pelo método da rigidez direta.
 - Visualização de reações, deslocamentos e diagramas de esforços; deformada nas tipologias suportadas.
+- Grelhas: desenho e edição diretamente em perspectiva isométrica, com grade no plano XY e eixos X/Y/Z. O mouse, o snap e o movimento de grupos usam coordenadas do modelo; cargas e deformada são representadas na direção Z. Relatórios PDF vetoriais e imagens PNG acompanham a projeção isométrica. JSON e CSV mantêm as coordenadas físicas do modelo.
 - Biblioteca de exemplos para explorar e conferir resultados.
 - Salvamento de projetos e exportação de resultados em PDF, PNG e CSV.
-- Interface em português e inglês, temas claro e escuro e preferências persistentes.
+- Interface em português, inglês e francês, temas claro e escuro e preferências persistentes.
 
 ## Instalação e guias
 
@@ -33,11 +36,12 @@ Os arquivos da versão são disponibilizados na área de **Releases** deste repo
 | Arquivo | Conteúdo |
 | --- | --- |
 | `MS-Estruturas-Setup.exe` | Instalador para Windows de 64 bits; não exige instalar Python. |
-| `Guia.de.Uso.-.MS.Estruturas.-.PT-BR.pdf` | Guia em português, com 24 páginas. |
-| `User.Guide.-.MS.Estruturas.-.EN.pdf` | Guia em inglês, com 24 páginas. |
-| `SHA256SUMS.txt` | Hashes para conferir a integridade dos três arquivos. |
+| `Guia.de.Uso.-.MS.Estruturas.-.PT-BR.pdf` | Guia em português, com 34 páginas. |
+| `User.Guide.-.MS.Estruturas.-.EN.pdf` | Guia em inglês, com 34 páginas. |
+| `Guide.d.utilisation.-.MS.Estruturas.-.FR.pdf` | Guia em francês, com 34 páginas. |
+| `SHA256SUMS.txt` | Hashes para conferir a integridade do instalador e dos três guias. |
 
-Baixe o instalador nos anexos da release, execute-o e abra o atalho **MS Estruturas**. Os arquivos automáticos “Source code” contêm os fontes do repositório; para instalar o aplicativo, escolha o arquivo `.exe`.
+Baixe o instalador nos anexos da release, execute-o e abra **MS Estruturas** pelo menu Iniciar. No assistente, você pode optar por criar um atalho na área de trabalho e abrir o programa ao concluir. Os arquivos automáticos “Source code” contêm os fontes do repositório. Para instalar o aplicativo, escolha o arquivo `.exe`.
 
 O executável ainda não possui assinatura digital. Confira a origem e a integridade do arquivo antes de executá-lo.
 

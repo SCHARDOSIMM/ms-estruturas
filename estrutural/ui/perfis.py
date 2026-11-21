@@ -20,6 +20,11 @@ CATALOGO={
 }
 
 
+def valor_propriedade(texto):
+    """Decimal comma is accepted consistently with the coordinates table."""
+    return float(texto.strip().replace(',','.'))
+
+
 class Esquema(QWidget):
     """Section and dimension lines share a centered, scalable drawing sheet."""
     def __init__(self,dialog):
@@ -176,11 +181,11 @@ class SeletorPerfil(QDialog):
             self.E.setToolTip('Valor definido pelo material da barra. Use o botão Material para alterar.');self.G.setToolTip(self.E.toolTip())
 
     def dimensoes(self):
-        if self.familia.currentText()=='Arbitrário': return {k:float(w.text())*self.factor**(2 if k=='A' else 4) for k,w in self.overrides.items()}
+        if self.familia.currentText()=='Arbitrário': return {k:valor_propriedade(w.text())*self.factor**(2 if k=='A' else 4) for k,w in self.overrides.items()}
         return {k:w.value()*self.factor for k,w in self.campos.items()}
     def config(self):
         return {'familia':self.familia.currentText(),'dimensoes':self.dimensoes(),'E_MPa':self.E.value(),'G_MPa':self.G.value(),'eixo':self.eixo.currentText(),
-                'sobrescritos':{k:float(w.text())*self.factor**(2 if k=='A' else 4) for k,w in self.overrides.items() if self.checks[k].isChecked() and self.familia.currentText()!='Arbitrário'},'nome':self.catalogo.currentText()}
+                'sobrescritos':{k:valor_propriedade(w.text())*self.factor**(2 if k=='A' else 4) for k,w in self.overrides.items() if self.checks[k].isChecked() and self.familia.currentText()!='Arbitrário'},'nome':self.catalogo.currentText()}
     def preset(self,nome):
         preset=CATALOGO[nome]
         if preset:
@@ -193,7 +198,7 @@ class SeletorPerfil(QDialog):
         self.busy=True
         for w in self.campos.values(): w.setValue(w.value()*old/new)
         for k,w in self.overrides.items():
-            try: w.setText(f'{float(w.text())*(old/new)**(2 if k=="A" else 4):.12g}')
+            try: w.setText(f'{valor_propriedade(w.text())*(old/new)**(2 if k=="A" else 4):.12g}')
             except ValueError: pass
         self.factor=new; self.busy=False; self.atualizar()
     def restaurar(self):

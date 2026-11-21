@@ -7,7 +7,7 @@ if (Test-Path -LiteralPath $qaPath) { throw 'A pasta de instalacao de teste ja e
 $registryPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{57F94E5A-F04F-4AA4-933F-D8BD4D995DE2}_is1'
 if (Test-Path -LiteralPath $registryPath) { throw 'Ja existe uma instalacao registrada. O teste nao deve remove-la.' }
 $before = & .\.venv\Scripts\python empacotamento\hash_preferencias.py
-$setup = (Resolve-Path -LiteralPath 'entrega\MS-Estruturas-1.0.2-Setup.exe').Path
+$setup = (Resolve-Path -LiteralPath 'entrega\MS-Estruturas-1.0.4-Setup.exe').Path
 $setupLog = Join-Path $workspace 'build\teste-instalar.log'
 $argsInstall = @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/sematalho=1',('/DIR="'+$qaPath+'"'),('/LOG="'+$setupLog+'"'))
 $installed = Start-Process -FilePath $setup -ArgumentList $argsInstall -WindowStyle Hidden -Wait -PassThru

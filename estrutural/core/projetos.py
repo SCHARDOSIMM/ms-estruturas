@@ -5,6 +5,9 @@ import math
 
 def migrar(projeto):
     m=copy.deepcopy(projeto)
+    # Discard metadata from the retired checks panel when reading old projects.
+    # The original project/file is not modified by migration.
+    m.pop('verificacoes',None)
     # Identificador atual: carga_pontual. Aceita o campo genérico e rótulos legados.
     for no in m.get('nos',[]):
         for antiga in ('carga','carga_nodal','Carga nodal','Carga pontual'):

@@ -45,7 +45,7 @@ class Selecao:
         else:
             d=QPointF(pos)-g['inicio']
             if not g['alterado'] and d.manhattanLength()<5:return True
-            dx,dy=d.x()/self.zoom,-d.y()/self.zoom
+            dx,dy=self.delta_mundo(d)
             if self.editor.snap.isChecked():
                 passo=self.editor.passo.value();dx=round(dx/passo)*passo;dy=round(dy/passo)*passo
             model=copy.deepcopy(g['modelo'])

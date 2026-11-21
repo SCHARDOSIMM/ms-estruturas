@@ -18,6 +18,8 @@ from estrutural.core.cargas import intensidade
 from estrutural.core.projetos import migrar,inserir_barra,inserir_no
 from estrutural.core.secoes import aplicar_secao,calcular_secao
 from estrutural.core.exibicao import PADRAO,Formatador
+from estrutural.core.idiomas import IDIOMAS
+from estrutural.ui.projecao_grelha import projetar, inverter, momento_grelha, angulo_apoio
 from estrutural.ui.simbolos import desenhar_apoio,desenhar_molas
 from estrutural.ui.idioma import QComboBox, QFileDialog, QInputDialog, QDialogButtonBox, QLabel, QPushButton, QCheckBox, tr, definir, atualizar
 from estrutural.ui.simbolos import desenhar_momento
@@ -90,11 +92,17 @@ class Desenho(Selecao,QWidget):
         self.setMouseTracking(True)
         self.setMinimumHeight(200)
 
-    def tela(self,x,y):
+    def tela(self,x,y,z=0):
+        if self.editor.modelo['tipo']=='Grelha':
+            return self.origem+projetar(x,y,z)*self.zoom
         return self.origem + QPointF(x*self.zoom,-y*self.zoom)
 
+    def delta_mundo(self,p):
+        if self.editor.modelo['tipo']=='Grelha':return inverter(p/self.zoom)
+        return p.x()/self.zoom,-p.y()/self.zoom
+
     def mundo(self,p):
-        x,y = (p.x()-self.origem.x())/self.zoom, -(p.y()-self.origem.y())/self.zoom
+        x,y = self.delta_mundo(p-self.origem)
         if self.editor.snap.isChecked():
             passo = self.editor.passo.value()
             x,y = round(x/passo)*passo,round(y/passo)*passo
@@ -232,7 +240,9 @@ class Desenho(Selecao,QWidget):
         self.rotulos_nodais=set()
         p.fillRect(self.rect(),QColor(tema.CAMPO if self.escuro else '#ffffff'))
         color = tema.TEXTO if self.escuro else '#000000'
-        if self.grade:
+        if self.grade and self.editor.modelo['tipo']=='Grelha':
+            self.grade_isometrica(p)
+        if self.grade and self.editor.modelo['tipo']!='Grelha':
             step = self.zoom*self.editor.passo.value()
             # Reduz a densidade visual ao afastar, sem alterar o snap físico.
             factor=1
@@ -279,6 +289,7 @@ class Desenho(Selecao,QWidget):
                     vx,vy=(s,c) if carga.get('eixo','local_y')=='local_y' else (0,1)
                     # Direção global Y é vertical; direção local y = (-s,c).
                     vx=-s if carga.get('eixo','local_y')=='local_y' else 0
+                    if ed.modelo['tipo']=='Grelha':vx,vy=0,1
                     last=None; p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'),1.3))
                     for j,val in enumerate(vals):
                         xx=aa+(bb-aa)*j/16; tip=self.tela(a['x']+c*xx,a['y']+s*xx)
@@ -311,7 +322,8 @@ class Desenho(Selecao,QWidget):
                 outline=[]; bases=[]
                 for v in pts:
                     off=(v.get(key,0) if abs(v.get(key,0))>=tol else 0)/maximum*ed.escala.value()/self.zoom*(-1 if key=='M' else 1)
-                    outline.append(self.tela(a['x']+c*v['x']-s*off,a['y']+s*v['x']+c*off))
+                    if ed.modelo['tipo']=='Grelha':outline.append(self.tela(a['x']+c*v['x'],a['y']+s*v['x'],off))
+                    else:outline.append(self.tela(a['x']+c*v['x']-s*off,a['y']+s*v['x']+c*off))
                     bases.append(self.tela(a['x']+c*v['x'],a['y']+s*v['x']))
                 fill=QColor(diagram_color); fill.setAlpha(52); p.setBrush(fill); p.setPen(Qt.NoPen)
                 p.drawPolygon(QPolygonF([bases[0]]+outline+[bases[-1]]))
@@ -348,13 +360,18 @@ class Desenho(Selecao,QWidget):
             label=f'{labels[i]} ({i+1})' if i<len(labels) else str(i+1)
             p.drawText(P+QPointF(7,-7),tr(label))
             from estrutural.core.apoios import direcao_barra
-            desenhar_apoio(p,ed.modelo,i,P,color);desenhar_molas(p,n,P,color,direcao_barra(ed.modelo,i),ed.modelo['tipo']=='Grelha')
+            desenhar_apoio(p,ed.modelo,i,P,color,angulo=angulo_apoio(ed.modelo,i) if ed.modelo['tipo']=='Grelha' else None);desenhar_molas(p,n,P,color,direcao_barra(ed.modelo,i),ed.modelo['tipo']=='Grelha')
             if ed.no_selecionado==i:p.setBrush(Qt.NoBrush);p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO),1.5));p.drawEllipse(P,8,8)
             if mostrar_cargas and any(n.get('carga_pontual',[])):
                 carga=(n['carga_pontual']+[0,0,0])[:3]
                 p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'),1.8))
                 if ed.modelo['tipo']=='Grelha':
                     self.rotular_valor(p,P+QPointF(5,34),f'Fz={carga[0]:g} kN; Mx={carga[1]:g}; My={carga[2]:g} kN·m')
+                    if carga[0]:
+                        u=QPointF(0,-1 if carga[0]>0 else 1);tail=P-u*48
+                        p.drawLine(tail,P);p.drawLine(P,P-u*8+QPointF(-u.y(),u.x())*4);p.drawLine(P,P-u*8-QPointF(-u.y(),u.x())*4)
+                    for eixo in (1,2):
+                        if carga[eixo]:momento_grelha(p,P,eixo,carga[eixo])
                 for fx,fy in ([] if ed.modelo['tipo']=='Grelha' else [(carga[0],0),(0,carga[1])]):
                     mag=math.hypot(fx,fy)
                     if mag:
@@ -386,10 +403,33 @@ class Desenho(Selecao,QWidget):
                 for j in ([1,2] if ed.modelo['tipo']=='Grelha' else ([2] if len(r)==3 else [])):
                     if abs(r[j])>=ed.preferencias['tolerancia_zero']:
                         radius=20+10*abs(r[j])/(max(abs(v[j]) for v in ed.resultado['reacoes']) or 1)
-                        desenhar_momento(p,P,radius,r[j])
-                        p.drawText(P+QPointF(25,30+16*(j-1)),tr(f'{f.esforco(r[j])} {f.unidade("M")}'))
+                        if ed.modelo['tipo']=='Grelha':momento_grelha(p,P,j,r[j],radius)
+                        else:desenhar_momento(p,P,radius,r[j])
+                        prefix=('Mx=' if j==1 else 'My=') if ed.modelo['tipo']=='Grelha' else ''
+                        p.drawText(P+QPointF(25,30+16*(j-1)),tr(f'{prefix}{f.esforco(r[j])} {f.unidade("M")}'))
         self.desenhar_selecao(p)
+        if ed.modelo['tipo']=='Grelha':self.eixos_grelha(p)
         p.end()
+
+    def grade_isometrica(self,p):
+        step=self.editor.passo.value()
+        while step*self.zoom<16:step*=5
+        corners=[self.delta_mundo(QPointF(x,y)-self.origem) for x in (0,self.width()) for y in (0,self.height())]
+        xmin,xmax=min(v[0] for v in corners),max(v[0] for v in corners)
+        ymin,ymax=min(v[1] for v in corners),max(v[1] for v in corners)
+        for axis,lo,hi in ((0,xmin,xmax),(1,ymin,ymax)):
+            for k in range(math.floor(lo/step),math.ceil(hi/step)+1):
+                p.setPen(QPen(QColor(tema.BORDA_BOTAO if self.escuro else '#cbd5e1'),.8 if k%5==0 else .35))
+                value=k*step
+                if axis==0:p.drawLine(self.tela(value,ymin),self.tela(value,ymax))
+                else:p.drawLine(self.tela(xmin,value),self.tela(xmax,value))
+
+    def eixos_grelha(self,p):
+        p.save();origin=QPointF(55,self.height()-48)
+        for name,delta,color in [('X',projetar(36,0),'#c2410c'),('Y',projetar(0,36),'#15803d'),('Z',projetar(0,0,36),'#2563eb')]:
+            p.setPen(QPen(QColor(color),2));tip=origin+delta;u=delta/36;normal=QPointF(-u.y(),u.x())
+            p.drawLine(origin,tip);p.drawLine(tip,tip-u*7+normal*3);p.drawLine(tip,tip-u*7-normal*3);p.drawText(tip+QPointF(4,-3),name)
+        p.restore()
 
     def rotular_valor(self,p,anchor,texto):
         """Place values without covering nearby node names or other values."""
@@ -430,7 +470,9 @@ class Desenho(Selecao,QWidget):
 
     def desenhar_deformada(self,p,i,b,a,z,color):
         ed=self.editor;res=ed.resultado['barras'][i];L=res['L'];c,s=(z['x']-a['x'])/L,(z['y']-a['y'])/L;data=res['deformacoes'];amp=ed.escala.value();f=ed.formatador();outline=[]
-        for d in data:outline.append(self.tela(a['x']+c*d['x']+d['ux']*amp,a['y']+s*d['x']+d['uy']*amp))
+        for d in data:
+            if ed.modelo['tipo']=='Grelha':outline.append(self.tela(a['x']+c*d['x'],a['y']+s*d['x'],d['uy']*amp))
+            else:outline.append(self.tela(a['x']+c*d['x']+d['ux']*amp,a['y']+s*d['x']+d['uy']*amp))
         p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'),2));p.setBrush(Qt.NoBrush);p.drawPolyline(QPolygonF(outline))
         for k in range(len(data)-1):self.diagrama_hits.append((outline[k],outline[k+1],i,'norma',data[k],data[k+1]))
         if not ed.preferencias['mostrar_valores']:return
@@ -452,7 +494,7 @@ class Editor(JanelaPrincipal):
     def __init__(self,config=None):
         self._persistencia_pronta=False;self._aplicando_preferencias=True
         super().__init__(config=config)
-        self.setWindowTitle('MS Estruturas  1.0.3');self.setMinimumSize(1000,560);self.resize(1360,900)
+        self.setWindowTitle('MS Estruturas  1.0.4');self.setMinimumSize(1000,560);self.resize(1360,900)
         from pathlib import Path
         from PyQt5.QtGui import QIcon
         self.logo=QIcon(str(Path(__file__).with_name('assets')/'ms-estruturas.svg'));self.setWindowIcon(self.logo)
@@ -493,7 +535,7 @@ class Editor(JanelaPrincipal):
             self.grupo_resultados.addButton(btn);acoes.addWidget(btn);self.rotulos_cabecalho.append((btn,nome,140 if nome=='Esforços' else 115))
         pdf=self.botao_simbolo('Relatório PDF',self.relatorio_pdf);acoes.addWidget(pdf);self.rotulos_cabecalho.append((pdf,'Relatório PDF',135))
         self.tema_btn=self.botao_simbolo('Modo noturno',lambda:self.noturno.setChecked(not self.noturno.isChecked()));self.tema_btn.setCheckable(True);self.tema_btn.setChecked(self.noturno.isChecked());acoes.addWidget(self.tema_btn)
-        self.idioma_btn=QPushButton('EN');self.idioma_btn.setFixedSize(38,34);self.idioma_btn.setToolTip('Alternar entre português e inglês.');self.idioma_btn.clicked.connect(self.alternar_idioma);acoes.addWidget(self.idioma_btn)
+        self.idioma_btn=QPushButton('EN');self.idioma_btn.setFixedSize(38,34);self.idioma_btn.setToolTip('Alternar entre português, inglês e francês.');self.idioma_btn.clicked.connect(self.alternar_idioma);acoes.addWidget(self.idioma_btn)
         acoes.addStretch();v.addLayout(acoes)
         tools = QHBoxLayout()
         self.ferramenta = QComboBox()
@@ -641,7 +683,8 @@ class Editor(JanelaPrincipal):
         except (ValueError,KeyError,TypeError) as err:self.erro(err)
 
     def alternar_idioma(self):
-        self.preferencias['idioma']='pt_BR' if self.preferencias.get('idioma')=='en_US' else 'en_US'
+        atual=self.preferencias.get('idioma','pt_BR')
+        self.preferencias['idioma']=IDIOMAS[(IDIOMAS.index(atual)+1)%len(IDIOMAS)]
         self.atualizar_idioma();self.salvar_preferencias_usuario()
 
     def atualizar_credito(self):
@@ -653,7 +696,7 @@ class Editor(JanelaPrincipal):
 
     def atualizar_idioma(self):
         definir(self.preferencias.get('idioma','pt_BR'))
-        self.idioma_btn.setText('PT' if self.preferencias.get('idioma')=='en_US' else 'EN')
+        self.idioma_btn.setText({'pt_BR':'EN','en_US':'FR','fr_FR':'PT'}[self.preferencias.get('idioma','pt_BR')])
         self.preencher_tabela();self.canvas.update()
 
     def botao_simbolo(self,nome,callback):
@@ -783,7 +826,7 @@ class Editor(JanelaPrincipal):
     def atualizar_legenda(self):
         if not hasattr(self,'legenda'):return
         if self.modo_resultado=='Deformada':
-            self.legenda.setText(f'Deformada ampliada ×{self.escala.value():g} | deslocamentos em {self.preferencias["deslocamento"]} | x desde o início da barra | '+('w fora do plano representado esquematicamente na vertical.' if self.modelo['tipo']=='Grelha' else 'δx/δy globais; θ em rad. Passe o mouse sobre a curva.'));return
+            self.legenda.setText(f'Deformada ampliada ×{self.escala.value():g} | deslocamentos em {self.preferencias["deslocamento"]} | x desde o início da barra | '+('w em Z, fora do plano XY; geometria original sem amplificação.' if self.modelo['tipo']=='Grelha' else 'δx/δy globais; θ em rad. Passe o mouse sobre a curva.'));return
         if self.modelo['tipo']=='Grelha':
             self.legenda.setText('Grelha: +w em Z; θx/θy e torção pela mão direita. Reações: Rz, Mx, My. Diagramas amostrados.')
         else:
@@ -802,6 +845,8 @@ class Editor(JanelaPrincipal):
     def ajustar_vista(self):
         nos=self.modelo['nos']
         if not nos: return
+        if self.modelo['tipo']=='Grelha':
+            nos=[{'x':projetar(n['x'],n['y']).x(),'y':-projetar(n['x'],n['y']).y()} for n in nos]
         xmin,xmax=min(n['x'] for n in nos),max(n['x'] for n in nos)
         ymin,ymax=min(n['y'] for n in nos),max(n['y'] for n in nos)
         margem=min(110,max(50,min(self.canvas.width(),self.canvas.height())*.23))
@@ -819,7 +864,10 @@ class Editor(JanelaPrincipal):
         self.atualizar_legenda()
         self.status.setText('Modelo alterado. Calcule novamente. Unidades internas: kN, m, rad; EA em kN; EI em kN·m².')
     def mudar_tipo(self,t):
-        self.registrar(); self.modelo['tipo']=t; self.invalidar()
+        anterior=self.modelo['tipo'];self.registrar(); self.modelo['tipo']=t; self.invalidar()
+        if 'Grelha' in (anterior,t):
+            if self.modelo['nos']:self.ajustar_vista()
+            elif t=='Grelha':self.canvas.origem=QPointF(self.canvas.width()/2,self.canvas.height()*.35)
     def carregar(self,m):
         self.canvas.cancelar_selecao();self.canvas.iniciar_selecao()
         self.modelo=migrar(m)
@@ -1026,6 +1074,6 @@ class Editor(JanelaPrincipal):
         except (OSError,ValueError) as e: self.erro(e)
 
     def cabecalho_csv(self,headers):
-        if self.preferencias.get('idioma')!='en_US':return headers
-        nomes={'barra':'member','perfil':'section','no':'node'}
+        nomes={'en_US':{'barra':'member','perfil':'section','no':'node'},
+               'fr_FR':{'barra':'barre','perfil':'section','no':'nœud'}}.get(self.preferencias.get('idioma'),{})
         return [nomes.get(h,h) for h in headers]

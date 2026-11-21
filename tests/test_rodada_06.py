@@ -92,7 +92,7 @@ class Refinamentos06(unittest.TestCase):
         with patch.object(self.w.config,'setValue') as save:
             self.w.idioma_btn.click()
             self.assertEqual(self.w.preferencias['idioma'],'en_US')
-            self.assertEqual(self.w.idioma_btn.text(),'PT')
+            self.assertEqual(self.w.idioma_btn.text(),'FR')
             self.assertTrue(any('en_US' in str(c) for c in save.call_args_list))
         self.assertEqual(self.w.cabecalho_csv(['barra','perfil','no','N_kN']),['member','section','node','N_kN'])
 

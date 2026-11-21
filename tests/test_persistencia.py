@@ -40,7 +40,7 @@ class Persistencia(unittest.TestCase):
         self.assertEqual(outro.preferencias['idioma'],'en_US');self.assertEqual(outro.passo.value(),.25);self.assertFalse(outro.xy_toggle.isChecked())
         outro.grade_check.setChecked(True);outro.snap.setChecked(True);outro.tema_btn.click();outro.idioma_btn.click();outro.close()
         terceiro=self.abrir();self.assertTrue(terceiro.grade_check.isChecked());self.assertTrue(terceiro.snap.isChecked())
-        self.assertFalse(terceiro.noturno.isChecked());self.assertEqual(terceiro.preferencias['idioma'],'pt_BR')
+        self.assertFalse(terceiro.noturno.isChecked());self.assertEqual(terceiro.preferencias['idioma'],'fr_FR')
     def test_configuracoes_e_escalas_independentes(self):
         w=self.abrir();op={**PADRAO,'forca':'N','deslocamento':'cm','decimais':2,'tolerancia_zero':.001,'relativo_desloc':1e-7,'mostrar_valores':False,'escala_deformada':1500.}
         w.aplicar_preferencias(op);w.escala.setValue(85);w.escolher_diagrama('Deformada');self.assertEqual(w.escala.value(),1500)

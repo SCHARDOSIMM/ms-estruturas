@@ -4,6 +4,9 @@ Only presentation strings are translated. Model keys, section identifiers,
 formulae and numerical values never pass through this catalog.
 """
 import re
+from estrutural.core.idiomas_fr import CATALOGO_FR
+
+IDIOMAS = ('pt_BR', 'en_US', 'fr_FR')
 
 # Long phrases precede short labels when translating composed strings.
 CATALOGO = {
@@ -504,20 +507,42 @@ Substituir arquivo? = Replace file?
 Já existe um arquivo com este nome: = A file with this name already exists:
 Deseja substituí-lo? = Do you want to replace it?
 ''')
-_PADRAO = re.compile('|'.join(re.escape(k) for k in sorted(CATALOGO, key=len, reverse=True)))
+CATALOGO['Alternar entre português, inglês e francês.'] = 'Switch between Portuguese, English and French.'
+_CATALOGOS = {'en_US': CATALOGO, 'fr_FR': CATALOGO_FR}
+CATALOGO['todas as barras']='all members'
+CATALOGO_FR['todas as barras']='toutes les barres'
+CATALOGO['w em Z, fora do plano XY; geometria original sem amplificação.'] = 'w along Z, out of the XY plane; original geometry without magnification.'
+CATALOGO_FR['w em Z, fora do plano XY; geometria original sem amplificação.'] = 'w suivant Z, hors du plan XY ; géométrie initiale sans amplification.'
+CATALOGO.update({
+    'Dados do modelo devem ser finitos.':'Model data must be finite.',
+    'Tipo de estrutura desconhecido.':'Unknown structure type.',
+    'Coordenadas dos nós devem ser numéricas.':'Node coordinates must be numeric.',
+    'Vetor nodal inválido:':'Invalid nodal vector:',
+    'Rigidez ou carregamento fora da faixa numérica do cálculo.':'Stiffness or loading exceeds the numerical range of the analysis.',
+})
+CATALOGO_FR.update({
+    'Dados do modelo devem ser finitos.':'Les données du modèle doivent être finies.',
+    'Tipo de estrutura desconhecido.':'Type de structure inconnu.',
+    'Coordenadas dos nós devem ser numéricas.':'Les coordonnées des nœuds doivent être numériques.',
+    'Vetor nodal inválido:':'Vecteur nodal non valide :',
+    'Rigidez ou carregamento fora da faixa numérica do cálculo.':'La rigidité ou le chargement dépasse la plage numérique du calcul.',
+})
+_PADROES = {idioma: re.compile('|'.join(re.escape(k) for k in sorted(catalogo, key=len, reverse=True)))
+            for idioma, catalogo in _CATALOGOS.items()}
 
 
 def traduzir(texto, idioma='pt_BR'):
-    if idioma != 'en_US' or not texto:
+    if idioma not in _CATALOGOS or not texto:
         return texto
-    if texto in CATALOGO:
-        return CATALOGO[texto]
+    catalogo = _CATALOGOS[idioma]
+    if texto in catalogo:
+        return catalogo[texto]
     # Composed strings retain numeric values, markup, units and user formulae.
     # Never replace pieces inside another word or a HTML/CSS attribute.
     def replace(m):
         a, b = m.span()
         if a and texto[a-1].isalpha() or b < len(texto) and texto[b].isalpha():
             return m.group()
-        return CATALOGO[m.group()]
-    resultado=_PADRAO.sub(replace, texto)
-    return re.sub(r'(?<=\d) a (?=[−+\-\d])',' to ',resultado)
+        return catalogo[m.group()]
+    resultado=_PADROES[idioma].sub(replace, texto)
+    return re.sub(r'(?<=\d) a (?=[−+\-\d])', ' à ' if idioma == 'fr_FR' else ' to ', resultado)

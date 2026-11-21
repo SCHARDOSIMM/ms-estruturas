@@ -16,7 +16,7 @@ def main():
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
-    app.setApplicationName('MS Estruturas');app.setApplicationVersion('1.0.3')
+    app.setApplicationName('MS Estruturas');app.setApplicationVersion('1.0.4')
     app.setApplicationDisplayName('MS Estruturas')
     app.setFont(QFont('Segoe UI', 9))
     if len(sys.argv)==3 and sys.argv[1]=='--verificar-instalacao':

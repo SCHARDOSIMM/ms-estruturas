@@ -1,4 +1,4 @@
-#define AppVersion "1.0.3"
+#define AppVersion "1.0.4"
 #ifndef AppDistDir
   #define AppDistDir "dist\MS Estruturas"
 #endif
@@ -35,15 +35,20 @@ VersionInfoCompany=Matheus Schardosim
 [Languages]
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
 [Files]
 Source: "{#AppDistDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; Flags: unchecked
+
 [Icons]
-Name: "{userdesktop}\MS Estruturas"; Filename: "{app}\MS Estruturas.exe"; WorkingDir: "{app}"; IconFilename: "{app}\MS Estruturas.exe"; AppUserModelID: "MS.Estruturas"; Check: CriarAtalho
+Name: "{userprograms}\MS Estruturas"; Filename: "{app}\MS Estruturas.exe"; WorkingDir: "{app}"; AppUserModelID: "MS.Estruturas"
+Name: "{userdesktop}\MS Estruturas"; Filename: "{app}\MS Estruturas.exe"; WorkingDir: "{app}"; AppUserModelID: "MS.Estruturas"; Tasks: desktopicon; Check: CriarAtalho
 
 [Run]
-Filename: "{app}\MS Estruturas.exe"; Description: "{cm:LaunchProgram,MS Estruturas}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\MS Estruturas.exe"; Description: "{cm:LaunchProgram,MS Estruturas}"; Flags: nowait postinstall skipifsilent unchecked
 
 [Code]
 function CriarAtalho: Boolean;

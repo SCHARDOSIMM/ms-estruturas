@@ -1,7 +1,10 @@
-MS Estruturas 1.0.3 - Windows 10/11 de 64 bits
+MS Estruturas 1.0.4 - Windows 10/11 de 64 bits
 
-1. Abra MS-Estruturas-1.0.3-Setup.exe e clique em Instalar.
-2. Abra MS Estruturas pelo atalho da área de trabalho.
+O instalador e o aplicativo estão disponíveis em português, inglês e francês.
+
+1. Abra MS-Estruturas-1.0.4-Setup.exe. Marque a opção de atalho na área de trabalho se desejar.
+2. Na tela final, marque a opção de abrir o MS Estruturas se quiser usá-lo agora.
+3. Para abrir depois, procure MS Estruturas no menu Iniciar.
 
 Não é necessário instalar Python nem baixar bibliotecas.
 Os arquivos internos ficam organizados em:

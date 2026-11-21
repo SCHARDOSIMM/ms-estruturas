@@ -32,7 +32,7 @@ class Versao10(unittest.TestCase):
     def test_control_rows_share_heights(self):
         w=Editor();saved=w.preferencias.copy();night=w.noturno.isChecked();w.show()
         try:
-            for lang in ('pt_BR','en_US'):
+            for lang in ('pt_BR','en_US','fr_FR'):
                 w.aplicar_preferencias({**PADRAO,'idioma':lang},gravar=False)
                 for width,height in [(1000,560),(1360,768),(1500,900)]:
                     w.resize(width,height);self.app.processEvents()

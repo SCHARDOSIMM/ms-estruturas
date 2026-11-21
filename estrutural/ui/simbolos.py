@@ -3,12 +3,13 @@ import math
 from PyQt5.QtCore import QPointF,QRectF,Qt
 from PyQt5.QtGui import QPen,QColor,QPolygonF
 from estrutural.core.apoios import angulo_visual
+from estrutural.ui.projecao_grelha import arco_momento_grelha
 
 
-def desenhar_apoio(p,modelo,idx,P,cor,size=1):
+def desenhar_apoio(p,modelo,idx,P,cor,size=1,angulo=None):
     a=modelo['nos'][idx].get('apoio',[])
     if not any(a):return
-    p.save();p.translate(P);p.rotate(angulo_visual(modelo,idx));p.scale(size,size);p.setPen(QPen(QColor(cor),1.5));p.setBrush(Qt.NoBrush)
+    p.save();p.translate(P);p.rotate(angulo_visual(modelo,idx) if angulo is None else angulo);p.scale(size,size);p.setPen(QPen(QColor(cor),1.5));p.setBrush(Qt.NoBrush)
     if len(a)>2 and all(a):
         p.drawLine(QPointF(0,-14),QPointF(0,14));p.drawLine(QPointF(0,0),QPointF(14,0))
         for y in range(-14,15,5):p.drawLine(QPointF(0,y),QPointF(-7,y+4))
@@ -28,7 +29,8 @@ def desenhar_molas(p,no,P,cor,direcao=(1,0),grelha=False):
     p.save();p.setPen(QPen(QColor(cor),1.3));p.setBrush(Qt.NoBrush)
     for j,k in enumerate(no.get('mola',[0,0,0])):
         if not k:continue
-        if j==2 or (grelha and j==1):p.drawArc(QRectF(P.x()-13,P.y()-13,26,26),30*16,290*16);continue
+        if grelha and j in (1,2):p.drawPolyline(QPolygonF([P+q for q in arco_momento_grelha(j,1,13)]));continue
+        if j==2:p.drawArc(QRectF(P.x()-13,P.y()-13,26,26),30*16,290*16);continue
         u=QPointF(-1 if direcao[0]>=0 else 1,0) if j==0 and not grelha else QPointF(0,1 if direcao[1]>=0 else -1);v=QPointF(-u.y(),u.x());pts=[P,P+u*5]
         for i in range(7):pts.append(P+u*(8+i*3)+v*(4 if i%2 else -4))
         pts.extend([P+u*30,P+u*36]);p.drawPolyline(QPolygonF(pts));p.drawLine(P+u*36-v*8,P+u*36+v*8)

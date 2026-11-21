@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel as LabelBase, QAbstra
     QListWidget, QFileDialog as FileBase, QPushButton as ButtonBase, QCheckBox as CheckBase)
 from PyQt5.QtWidgets import QInputDialog as InputBase
 from PyQt5.QtWidgets import QDialogButtonBox as BoxBase
-from estrutural.core.idiomas import traduzir
+from estrutural.core.idiomas import traduzir, IDIOMAS
 
 _idioma = 'pt_BR'
 _filtro = None
@@ -103,7 +103,7 @@ def atualizar(raiz):
     Editable text and project data are deliberately excluded: language changes
     must never rewrite a user's project name, formula or material name.
     """
-    locale = QLocale('en_US' if _idioma == 'en_US' else 'pt_BR')
+    locale = QLocale(_idioma)
     for w in [raiz] + raiz.findChildren(QWidget):
         if w.locale() != locale:
             w.setLocale(locale)
@@ -164,14 +164,18 @@ class TradutorQt(QTranslator):
     def translate(self, context, sourceText, disambiguation=None, n=-1):
         # Translate Qt's own buttons and non-native file dialogs as well.
         result = tr(sourceText)
+        if _idioma == 'fr_FR':
+            result = {'Cancel':'Annuler', '&Cancel':'&Annuler', 'Close':'Fermer',
+                      'Open':'Ouvrir', '&Open':'&Ouvrir', 'Save':'Enregistrer', '&Save':'&Enregistrer',
+                      'OK':'OK', 'Yes':'Oui', '&Yes':'&Oui', 'No':'Non', '&No':'&Non'}.get(sourceText, sourceText)
         if _idioma == 'pt_BR':
             result = {'Cancel':'Cancelar', '&Cancel':'&Cancelar', 'Close':'Fechar',
                       'Open':'Abrir', '&Open':'&Abrir', 'Save':'Salvar', '&Save':'&Salvar',
                       'OK':'OK', 'Yes':'Sim', 'No':'Não'}.get(sourceText, sourceText)
         # A Python empty string becomes a non-null empty QString: Qt accepts it
         # as a translation and renders standard buttons (notably OK) blank.
-        if result == sourceText and _idioma == 'pt_BR' and hasattr(self,'fallback'):
-            return self.fallback.translate(context,sourceText,disambiguation,n) or sourceText
+        if result == sourceText and hasattr(self,'fallbacks') and _idioma in self.fallbacks:
+            return self.fallbacks[_idioma].translate(context,sourceText,disambiguation,n) or sourceText
         return result
 
 
@@ -180,8 +184,12 @@ class FiltroIdioma(QObject):
         super().__init__(app); self.busy = False
         self.qt_pt=QTranslator(self)
         self.qt_pt.load('qt_pt',QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+        self.qt_fr=QTranslator(self)
+        # qt_fr is a meta-catalog that also depends on unused Qt modules.
+        # Load Qt Widgets/Core translations directly for the trimmed build.
+        self.qt_fr.load('qtbase_fr',QLibraryInfo.location(QLibraryInfo.TranslationsPath))
         self.pt_instalado=False
-        self.qt = TradutorQt(self);self.qt.fallback=self.qt_pt; app.installTranslator(self.qt)
+        self.qt = TradutorQt(self);self.qt.fallbacks={'pt_BR':self.qt_pt,'fr_FR':self.qt_fr}; app.installTranslator(self.qt)
 
     def eventFilter(self, obj, event):
         if not self.busy and isinstance(obj, QWidget) and obj.isWindow() and event.type()==QEvent.Show:
@@ -193,7 +201,7 @@ class FiltroIdioma(QObject):
 
 def definir(idioma):
     global _idioma, _filtro
-    _idioma = 'en_US' if idioma == 'en_US' else 'pt_BR'
+    _idioma = idioma if idioma in IDIOMAS else 'pt_BR'
     app = QApplication.instance()
     QLocale.setDefault(QLocale(_idioma))
     if app:
@@ -202,11 +210,15 @@ def definir(idioma):
         if _idioma=='pt_BR' and not _filtro.pt_instalado:
             app.installTranslator(_filtro.qt_pt);_filtro.pt_instalado=True
             app.removeTranslator(_filtro.qt);app.installTranslator(_filtro.qt)
-        elif _idioma=='en_US' and _filtro.pt_instalado:
+        elif _idioma!='pt_BR' and _filtro.pt_instalado:
             app.removeTranslator(_filtro.qt_pt);_filtro.pt_instalado=False
         _filtro.busy = True
         try:
-            for w in app.topLevelWidgets(): atualizar(w)
+            # EN ↔ FR does not install/remove the Portuguese translator, so Qt
+            # would otherwise leave its own open dialogs in the old language.
+            for w in app.topLevelWidgets():
+                app.sendEvent(w, QEvent(QEvent.LanguageChange))
+                atualizar(w)
         finally: _filtro.busy = False
 
 

@@ -1,17 +1,19 @@
-# Instalador MS Estruturas 1.0.3
+# Instalador MS Estruturas 1.0.4
 
 ## Para usar e distribuir
 
-O produto para o usuário é **entrega/MS-Estruturas-1.0.3-Setup.exe**.
-O instalador tem aproximadamente 20,15 MiB. Instale e abra o atalho
-**MS Estruturas** na área de trabalho. Nenhuma instalação de Python é necessária.
+O produto para o usuário é **entrega/MS-Estruturas-1.0.4-Setup.exe**.
+Instale e abra **MS Estruturas** pelo menu Iniciar.
+O assistente oferece opções para criar um atalho na área de trabalho e abrir
+o programa ao concluir. Em uma instalação nova, ambas começam desmarcadas.
+Nenhuma instalação de Python é necessária.
 A pasta `entrega` também contém instruções curtas e o SHA-256 do instalador.
 
 A instalação final foi concluída neste computador em:
 `%LOCALAPPDATA%\Programs\MS Estruturas`.
 Esse é um local próprio para programas instalados por usuário, sem exigir
 elevação administrativa. A versão instalada ocupa aproximadamente 62,34 MiB,
-incluindo o desinstalador. A área de trabalho recebe um único atalho.
+incluindo o desinstalador. Os componentes ficam na subpasta `_internal`.
 
 O diretório do programa contém o executável, uma pasta interna de componentes
 e o desinstalador. Não leva `.venv`, código de testes, imagens de revisão,
@@ -42,7 +44,8 @@ Foi escolhido um pacote instalado em pasta, comprimido num instalador único.
 Isso mantém a abertura direta e evita extrair bibliotecas novamente a cada
 execução, como ocorre no modo one-file. Referência: [documentação do PyInstaller](https://www.pyinstaller.org/en/stable/operating-mode.html).
 O instalador usa o [Inno Setup](https://jrsoftware.org/inno-setup/downloads),
-com instalação por usuário, interface português/inglês e desinstalação registrada.
+com instalação por usuário, interface em português, inglês e francês e
+desinstalação registrada.
 
 ## Validação realizada
 

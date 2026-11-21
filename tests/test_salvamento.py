@@ -33,7 +33,7 @@ class Salvamento(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as folder:
                 directory=Path(folder).resolve()
-                for lang,pdf,csv in [('pt_BR','Relatório PDF (*.pdf)','Resultados (*.csv)'),('en_US','PDF report (*.pdf)','Results (*.csv)')]:
+                for lang,pdf,csv in [('pt_BR','Relatório PDF (*.pdf)','Resultados (*.csv)'),('en_US','PDF report (*.pdf)','Results (*.csv)'),('fr_FR','Rapport PDF (*.pdf)','Résultats (*.csv)')]:
                     definir(lang)
                     for chosen,extension in [(pdf,'.pdf'),(csv,'.csv')]:
                         QTimer.singleShot(50,lambda f=chosen:self.preencher(directory,'modelo.v1',f))

@@ -6,7 +6,8 @@ ROOT=Path(SPECPATH).parent
 site=Path(distribution('PyQt5').locate_file(''))
 assets=ROOT/'estrutural'/'ui'/'assets'
 datas=[(str(p),'estrutural/ui/assets') for p in assets.iterdir() if p.suffix in ('.svg','.ico') and p.name!='marca-ms.svg']
-datas += [(str(site/'PyQt5'/'Qt5'/'translations'/'qt_pt.qm'),'PyQt5/Qt5/translations')]
+datas += [(str(site/'PyQt5'/'Qt5'/'translations'/name),'PyQt5/Qt5/translations')
+          for name in ('qt_pt.qm','qt_fr.qm','qtbase_fr.qm')]
 for name in ('Vera.ttf','VeraBd.ttf','bitstream-vera-license.txt'):
     datas.append((str(site/'reportlab'/'fonts'/name),'reportlab/fonts'))
 datas.append((str(ROOT/'empacotamento'/'avisos'),'Licencas'))
@@ -29,7 +30,7 @@ def manter(entry):
         removidos.append(nome);return False
     if base.startswith('qt5') and base.endswith('.dll') and base not in ('qt5core.dll','qt5gui.dll','qt5widgets.dll','qt5svg.dll'):
         removidos.append(nome);return False
-    if '/translations/' in nome and base!='qt_pt.qm':
+    if '/translations/' in nome and base not in ('qt_pt.qm','qt_fr.qm','qtbase_fr.qm'):
         removidos.append(nome);return False
     if '/plugins/' in nome and not any('/'+p+'/' in nome for p in ('platforms','styles','imageformats','iconengines')):
         removidos.append(nome);return False

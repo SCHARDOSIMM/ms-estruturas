@@ -2,6 +2,7 @@
 import json
 import math
 from estrutural.core.exibicao import PADRAO
+from estrutural.core.idiomas import IDIOMAS
 
 
 def carregar_preferencias(config):
@@ -23,7 +24,7 @@ def carregar_preferencias(config):
         op['escuro']=config.value('modo_noturno',False,type=bool)
     for key,lo,hi in [('decimais',0,10),('passo',.01,100),('escala_diagrama',1,300),('escala_deformada',.01,1e12),('tolerancia_zero',0,1e3),('relativo_desloc',0,.1)]:
         op[key]=max(lo,min(hi,op[key]))
-    for key,validos in [('idioma',('pt_BR','en_US')),('forca',('kN','N')),('deslocamento',('mm','cm','m'))]:
+    for key,validos in [('idioma',IDIOMAS),('forca',('kN','N')),('deslocamento',('mm','cm','m'))]:
         if op[key] not in validos:op[key]=PADRAO[key]
     return op
 

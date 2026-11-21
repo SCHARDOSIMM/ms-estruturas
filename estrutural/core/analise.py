@@ -26,6 +26,8 @@ def mul(a, b):
 def resolver(a, b):
     """Eliminação com pivoteamento e escalonamento das linhas."""
     n = len(b)
+    if any(not math.isfinite(v) for row in a for v in row) or any(not math.isfinite(v) for v in b):
+        raise ErroModelo('Rigidez ou carregamento fora da faixa numérica do cálculo.')
     a = [list(row) + [v] for row, v in zip(a, b)]
     for row in a:
         scale = max(map(abs, row[:-1]), default=0)
@@ -47,11 +49,42 @@ def resolver(a, b):
     return x
 
 
+def validar_entrada(modelo):
+    """Reject invalid imported physical data before assembling either solver."""
+    def finitos(value):
+        if isinstance(value, dict):
+            for item in value.values(): finitos(item)
+        elif isinstance(value, (list, tuple)):
+            for item in value: finitos(item)
+        elif isinstance(value, (int, float)) and not math.isfinite(value):
+            raise ErroModelo('Dados do modelo devem ser finitos.')
+    finitos(modelo)
+    tipo=modelo.get('tipo', 'Pórtico plano')
+    if tipo not in ('Viga','Pórtico plano','Treliça','Grelha','Arco'):
+        raise ErroModelo('Tipo de estrutura desconhecido.')
+    nos=modelo.get('nos',[]); barras=modelo.get('barras',[])
+    g=2 if tipo=='Treliça' else 3
+    for no in nos:
+        if not all(isinstance(no.get(k),(int,float)) for k in ('x','y')):
+            raise ErroModelo('Coordenadas dos nós devem ser numéricas.')
+        for key in ('carga_pontual','apoio','recalque','mola'):
+            if key in no and (not isinstance(no[key],(list,tuple)) or len(no[key])<g
+                              or not all(isinstance(v,(int,float)) for v in no[key])):
+                raise ErroModelo('Vetor nodal inválido: '+key)
+        if any(v<0 for v in no.get('mola',[])):
+            raise ErroModelo('Rigidez de mola deve ser não negativa.')
+    for b in barras:
+        if any(type(b.get(k)) is not int or not 0<=b[k]<len(nos) for k in ('i','j')):
+            raise ErroModelo('Barra referencia nó inexistente.')
+
+
 def analisar(modelo):
     from estrutural.core.projetos import migrar
     from estrutural.core.materiais import preparar_barra
     modelo=migrar(modelo)
+    validar_entrada(modelo)
     modelo['barras']=[preparar_barra(b) for b in modelo['barras']]
+    validar_entrada(modelo)
     tipo = modelo.get('tipo', 'Pórtico plano')
     if modelo.get('segunda_ordem'):
         raise ErroModelo('Análise de segunda ordem ainda não validada e indisponível.')

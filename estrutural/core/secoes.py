@@ -42,7 +42,7 @@ def calcular_secao(f,d,sobrescritos=None):
         width=max(x+b for x,y,b,h in parts); height=max(y+h for x,y,b,h in parts)
         Wx=Ix/max(cy,height-cy); Wy=Iy/max(cx,width-cx)
         if f=='Caixão':
-            t=d['t']; bm=width-t; hm=height-t; J=4*(bm*hm)**2/(2*(bm+hm)/t)
+            t=d.get('t',.01); bm=width-t; hm=height-t; J=4*(bm*hm)**2/(2*(bm+hm)/t)
             aviso='J aproximado por Bredt para parede fina fechada; cantos vivos.'
             formulas+=' J≈4Am²/∮(ds/t).'
         elif f in ('Retangular','Quadrado'):
