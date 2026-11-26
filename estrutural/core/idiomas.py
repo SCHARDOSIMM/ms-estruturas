@@ -10,6 +10,14 @@ IDIOMAS = ('pt_BR', 'en_US', 'fr_FR')
 
 # Long phrases precede short labels when translating composed strings.
 CATALOGO = {
+    'Horizontal global X': 'Global horizontal X',
+    'Valores negativos atuam no sentido negativo do eixo escolhido, por metro real de barra (não por projeção).': 'Negative values act in the negative direction of the selected axis, per metre of actual member length (not projected length).',
+    'Arco: extremos rotulados; passe o mouse para consultar cada barra. A geometria continua discretizada em barras retas.': 'Arch: extrema labelled; hover to inspect each member. The geometry is still discretised into straight members.',
+    'Extremos incluem pontos críticos dos esforços. x medido desde o início de cada barra.': 'Extrema include critical force stations. x is measured from the start of each member.',
+    'Arco discretizado em barras retas. Compare malhas sucessivas para avaliar a aproximação da geometria.': 'Arch discretised into straight members. Compare successive meshes to assess the geometry approximation.',
+    'A geometria é aproximada por barras retas. Use malhas sucessivas para conferir a convergência. Apoios, seção, material e cargas são definidos após inserir.': 'The geometry is approximated by straight members. Compare successive meshes to check convergence. Supports, section, material and loads are defined after insertion.',
+    'Eixo de carga aceita local_y, global_y ou global_x; use intensidades por metro real da barra.': 'Load axis must be local_y, global_y or global_x; use intensities per metre of actual member length.',
+
     'em x=': 'at x=',
     'b · largura    h · altura':'b · width    h · depth',
     'b · lado':'b · side length',

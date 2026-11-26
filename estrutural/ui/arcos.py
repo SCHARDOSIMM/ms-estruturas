@@ -35,13 +35,13 @@ class Previa(QWidget):
 
 class DialogoArco(QDialog):
     def __init__(self,parent):
-        super().__init__(parent);self.setWindowTitle('Desenhar arco');self.resize(530,590);self.resultado=None
+        super().__init__(parent);self.setWindowTitle('Desenhar arco');self.resize(530,640);self.resultado=None
         v=QVBoxLayout(self);f=QFormLayout();v.addLayout(f);self.forma=QComboBox();self.forma.addItems(['Parabólico','Circular']);f.addRow('Forma do arco',self.forma)
         self.campos={}
         for key,label,val in [('xi','X inicial (m)',0),('yi','Y inicial (m)',0),('xf','X final (m)',6),('yf','Y final (m)',0),('flecha','Flecha normal à corda (m)',2)]:
             w=numero(val);self.campos[key]=w;f.addRow(label,w)
-        self.segmentos=QSpinBox();self.segmentos.setRange(2,100);self.segmentos.setValue(20);f.addRow('Número de segmentos',self.segmentos)
-        info=QLabel('O arco será acrescentado ao desenho. Extremos coincidentes com nós existentes serão unidos.\nA geometria é aproximada por barras retas; apoios, seção, material e cargas são definidos após inserir.');info.setWordWrap(True);v.addWidget(info)
+        self.segmentos=QSpinBox();self.segmentos.setRange(2,200);self.segmentos.setValue(96);f.addRow('Número de segmentos',self.segmentos)
+        info=QLabel('O arco será acrescentado ao desenho. Extremos coincidentes com nós existentes serão unidos.\nA geometria é aproximada por barras retas. Use malhas sucessivas para conferir a convergência. Apoios, seção, material e cargas são definidos após inserir.');info.setWordWrap(True);v.addWidget(info)
         self.previa=Previa(self);v.addWidget(self.previa)
         for w in self.campos.values():w.valueChanged.connect(lambda:self.previa.update())
         self.forma.currentTextChanged.connect(lambda:self.previa.update());self.segmentos.valueChanged.connect(lambda:self.previa.update())

@@ -7,6 +7,15 @@ FUNCOES={n:getattr(math,n) for n in ('sin','cos','tan','exp','sqrt','log')}
 FUNCOES['abs']=abs
 
 
+def componentes_locais(ch,c,s):
+    """Componentes de uma carga unitária por metro real da barra."""
+    eixo=ch.get('eixo','local_y')
+    if eixo=='local_y':return 0.,1.
+    if eixo=='global_y':return s,c
+    if eixo=='global_x':return c,-s
+    raise ValueError('Eixo de carga aceita local_y, global_y ou global_x; use intensidades por metro real da barra.')
+
+
 @lru_cache(maxsize=128)
 def compilar(expressao):
     expressao=expressao.replace('^','**')

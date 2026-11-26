@@ -58,7 +58,9 @@ O executável ainda não possui assinatura digital. Confira a origem e a integri
 
 ## Hipóteses e limites
 
-O aplicativo utiliza análise elástica linear, de primeira ordem e com pequenos deslocamentos. Não implementa análise P-Δ, flambagem por autovalores, plasticidade, combinações de carregamento, peso próprio automático ou dimensionamento normativo. Arcos são discretizados em barras retas. Diagramas e extremos dependem da amostragem adotada.
+O aplicativo utiliza análise elástica linear, de primeira ordem e com pequenos deslocamentos. Não implementa análise P-Δ, flambagem por autovalores, plasticidade, combinações de carregamento, peso próprio automático ou dimensionamento normativo. Arcos são discretizados em barras retas e exigem comparação de malhas sucessivas. Os diagramas incluem os extremos analíticos de cargas uniformes e lineares por trechos, além das amostras de desenho; funções de carga avançadas usam busca numérica de pontos críticos.
+
+O editor de cargas aceita direções global X, global Y e transversal local y, sempre por metro real de barra. Uma carga definida por projeção deve ser convertida para esse comprimento. Arcos com muitas barras mostram rótulos resumidos na tela e no PDF; as tabelas, o CSV e a consulta com o mouse conservam os resultados de todas as barras. Veja [extremos e discretização de arcos](docs/EXTREMOS_E_ARCOS.md).
 
 Confira geometria, unidades, vínculos, rigidezes, equilíbrio e resultados de forma independente. A ferramenta não substitui a verificação pelo responsável técnico. Os guias detalham as hipóteses e os limites de cada tipologia.
 

@@ -1,6 +1,14 @@
 """French presentation catalog. See docs/IDIOMA_FR.md for terminology sources."""
 
 CATALOGO_FR = {
+    'Horizontal global X': 'Horizontale globale X',
+    'Valores negativos atuam no sentido negativo do eixo escolhido, por metro real de barra (não por projeção).': 'Les valeurs négatives agissent dans le sens négatif de l’axe choisi, par mètre réel de barre (et non par projection).',
+    'Arco: extremos rotulados; passe o mouse para consultar cada barra. A geometria continua discretizada em barras retas.': 'Arc : extrema étiquetés ; survolez chaque barre pour consulter ses valeurs. La géométrie reste discrétisée en barres droites.',
+    'Extremos incluem pontos críticos dos esforços. x medido desde o início de cada barra.': 'Les extrema incluent les points critiques des efforts. x est mesuré depuis le début de chaque barre.',
+    'Arco discretizado em barras retas. Compare malhas sucessivas para avaliar a aproximação da geometria.': 'Arc discrétisé en barres droites. Comparez des maillages successifs pour évaluer l’approximation de la géométrie.',
+    'A geometria é aproximada por barras retas. Use malhas sucessivas para conferir a convergência. Apoios, seção, material e cargas são definidos após inserir.': 'La géométrie est approchée par des barres droites. Comparez des maillages successifs pour vérifier la convergence. Les appuis, la section, le matériau et les charges sont définis après insertion.',
+    'Eixo de carga aceita local_y, global_y ou global_x; use intensidades por metro real da barra.': 'L’axe de charge doit être local_y, global_y ou global_x ; utilisez des intensités par mètre réel de barre.',
+
     'Snap': 'Accrochage',
     'Alternar entre português, inglês e francês.': 'Passer du portugais à l’anglais et au français.',
     'Ângulo da normal ao plano de rolamento. Padrão 90° = restrição vertical. Esta direção influencia o cálculo.': 'Angle de la normale au plan de roulement. Par défaut : 90° pour un blocage vertical. Cette direction intervient dans le calcul.',

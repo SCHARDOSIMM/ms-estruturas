@@ -21,16 +21,17 @@ from estrutural.ui.relatorio_vetorial import Figura,ProjecaoFigura,fontes,gerar_
 
 class CanvasGravado(Canvas):
     def __init__(self):
-        super().__init__(BytesIO());self.linhas=[];self.caminhos=[];self.angulos=[];self.textos=[]
+        super().__init__(BytesIO());self.linhas=[];self.caminhos=[];self.fechados=set();self.angulos=[];self.textos=[]
     def line(self,*args):self.linhas.append(args);return super().line(*args)
     def rotate(self,angle):self.angulos.append(angle);return super().rotate(angle)
     def drawString(self,x,y,text,*args,**kwargs):self.textos.append(text);return super().drawString(x,y,text,*args,**kwargs)
     def beginPath(self):
         path=super().beginPath();points=[];self.caminhos.append(points)
-        move,line=path.moveTo,path.lineTo
+        move,line,close=path.moveTo,path.lineTo,path.close
         def moveto(x,y):points.append((x,y));move(x,y)
         def lineto(x,y):points.append((x,y));line(x,y)
-        path.moveTo=moveto;path.lineTo=lineto
+        def fechar():self.fechados.add(id(points));close()
+        path.moveTo=moveto;path.lineTo=lineto;path.close=fechar
         return path
 
 
@@ -69,7 +70,7 @@ class RelatorioIsometrico(unittest.TestCase):
         for key in ('V','M','T','D'):
             with self.subTest(diagrama=key):
                 c=self.render(m,r,key)
-                curves=[p for p in c.caminhos if len(p)>=80] if key=='D' else [p for p in c.caminhos if len(p)==41]
+                curves=[p for p in c.caminhos if id(p) not in c.fechados and len(p)>=(80 if key=='D' else 41)]
                 self.assertEqual(len(curves),len(m['barras']))
                 for i,b in enumerate(m['barras']):
                     a,z=[m['nos'][b[k]] for k in ('i','j')];L=r['barras'][i]['L']

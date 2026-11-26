@@ -43,7 +43,8 @@ def analisar_grelha(m):
     for b,L,T,k,f,ids in elems:
         dl=[v[0] for v in mul(T,[[d[i]] for i in ids])]
         ends=[sum(k[i][j]*dl[j] for j in range(6))-f[i] for i in range(6)]
-        pts=[{'x':L*t/40,'N':0,'V':ends[0]+b.get('q',0)*L*t/40,'M':-ends[2]+ends[0]*L*t/40+b.get('q',0)*(L*t/40)**2/2,'T':-ends[1]} for t in range(41)]
+        from estrutural.core.esforcos import amostrar
+        pts=amostrar(b,ends,L,tipo='Grelha')
         result.append({'L':L,'extremos':ends,'pontos':pts,'deslocamentos_locais':dl})
     total=[r[i]+F[i] for i in range(n)]
     eq=[sum(total[3*i] for i in range(len(nos))),sum(total[3*i+1]+nos[i]['y']*total[3*i] for i in range(len(nos))),sum(total[3*i+2]-nos[i]['x']*total[3*i] for i in range(len(nos)))]
