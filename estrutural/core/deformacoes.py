@@ -1,6 +1,6 @@
 """Deformações por integração de N/EA e M/EI, com pontos críticos refinados."""
 import math
-from estrutural.core.cargas import integrar
+from estrutural.core.cargas import integrar,componentes_locais
 
 
 def avaliar(b,res,x,c,s,tipo):
@@ -23,7 +23,7 @@ def avaliar(b,res,x,c,s,tipo):
         if x>ch['x']:uprime-=fx/EA
         v+=(fy*h**3/6-ch.get('m',0)*h*h/2)/EI;theta+=(fy*h*h/2-ch.get('m',0)*h)/EI
     for ch in b.get('distribuidas',[]):
-        a,z=ch.get('a',0),min(x,ch.get('b',L));fx,fy=(0,1) if ch.get('eixo','local_y')=='local_y' else (s,c)
+        a,z=ch.get('a',0),min(x,ch.get('b',L));fx,fy=componentes_locais(ch,c,s)
         if z>a:
             if fx:u-=fx*integrar(ch,L,lambda t:x-t,a,z)/EA;uprime-=fx*integrar(ch,L,lambda t:1,a,z)/EA
             if fy:v+=fy*integrar(ch,L,lambda t:(x-t)**3/6,a,z)/EI;theta+=fy*integrar(ch,L,lambda t:(x-t)**2/2,a,z)/EI

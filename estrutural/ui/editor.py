@@ -259,9 +259,15 @@ class Desenho(Selecao,QWidget):
                     else: p.drawLine(QPointF(0,pos),QPointF(self.width(),pos))
         ed = self.editor
         mostrar_cargas=not ed.resultado or ed.modo_resultado not in ('Diagramas','Deformada') or (ed.modo_resultado=='Diagramas' and ed.diagrama.currentText()=='Estrutura')
-        projecao_arco=self.carga_projetada_arco() if mostrar_cargas else None
+        from estrutural.ui.rotulos import arco_denso,nos_rotulados,extremos_globais,cargas_projetadas
+        compacto=arco_denso(ed.modelo);nomes=nos_rotulados(ed.modelo,ed.no_selecionado)
+        projecoes=cargas_projetadas(ed.modelo) if mostrar_cargas else []
+        eixos_agrupados={ch['eixo'] for ch in projecoes}
+        chave=ed.diagrama.currentText()
+        rotulos_extremos=extremos_globais(ed.resultado,chave) if compacto and ed.resultado and chave in ('N','V','M','T') else set()
         self.rotulos_valores=[];self.chaves_valores=set()
         for idx,no in enumerate(ed.modelo['nos']):
+            if idx not in nomes:continue
             pos=self.tela(no['x'],no['y'])
             self.rotulos_valores.append(QRectF(pos.x()+5,pos.y()-20,65,18))
         if self.inicio is not None and self.cursor_mundo and self.inicio<len(ed.modelo['nos']):
@@ -274,7 +280,7 @@ class Desenho(Selecao,QWidget):
             A,B = self.tela(a['x'],a['y']),self.tela(z['x'],z['y'])
             p.setPen(QPen(QColor(color),2))
             p.drawLine(A,B)
-            p.drawText((A+B)/2+QPointF(0,18),tr(f'B{i+1}'))
+            if not compacto:p.drawText((A+B)/2+QPointF(0,18),tr(f'B{i+1}'))
             comprimento=math.hypot(z['x']-a['x'],z['y']-a['y'])
             if comprimento:
                 c,s=(z['x']-a['x'])/comprimento,(z['y']-a['y'])/comprimento
@@ -283,27 +289,27 @@ class Desenho(Selecao,QWidget):
                 for carga in cargas:
                     aa,bb=carga.get('a',0),carga.get('b',comprimento)
                     try:
-                        vals=[intensidade(carga,aa+(bb-aa)*j/16,comprimento) for j in range(17)]
+                        fractions=[0,.5,1] if compacto else [j/16 for j in range(17)]
+                        vals=[intensidade(carga,aa+(bb-aa)*t,comprimento) for t in fractions]
                     except (ValueError,KeyError,ZeroDivisionError): continue
                     maxi=max(map(abs,vals)) or 1
-                    vx,vy=(s,c) if carga.get('eixo','local_y')=='local_y' else (0,1)
-                    # Direção global Y é vertical; direção local y = (-s,c).
-                    vx=-s if carga.get('eixo','local_y')=='local_y' else 0
+                    eixo=carga.get('eixo','local_y')
+                    vx,vy=(-s,c) if eixo=='local_y' else (1,0) if eixo=='global_x' else (0,1)
                     if ed.modelo['tipo']=='Grelha':vx,vy=0,1
                     last=None; p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'),1.3))
                     for j,val in enumerate(vals):
-                        xx=aa+(bb-aa)*j/16; tip=self.tela(a['x']+c*xx,a['y']+s*xx)
+                        xx=aa+(bb-aa)*fractions[j]; tip=self.tela(a['x']+c*xx,a['y']+s*xx)
                         tail=tip+QPointF(-vx,vy)*(val/maxi*42)
                         if last is not None: p.drawLine(last,tail)
                         last=tail
-                        if abs(val)>1e-12:
+                        if abs(val)>1e-12 and (not compacto or j==1):
                             p.drawLine(tail,tip)
                             direction=(tip-tail); length=math.hypot(direction.x(),direction.y()); u=direction/length
                             p.drawLine(tip,tip-u*6+QPointF(-u.y(),u.x())*3)
                             p.drawLine(tip,tip-u*6-QPointF(-u.y(),u.x())*3)
                     uniforme=max(vals)-min(vals)<1e-9
                     texto=carga.get('descricao','Função personalizada') if carga.get('funcao') or carga.get('pontos') else (f'{vals[0]:g} kN/m' if uniforme else f'{vals[0]:g} → {vals[-1]:g} kN/m')
-                    if projecao_arco is None:self.rotular_valor(p,self.tela(a['x']+c*(aa+bb)/2,a['y']+s*(aa+bb)/2)+QPointF(0,-42),texto)
+                    if carga.get('eixo','local_y') not in eixos_agrupados and (not compacto or i%max(1,len(ed.modelo['barras'])//4)==0):self.rotular_valor(p,self.tela(a['x']+c*(aa+bb)/2,a['y']+s*(aa+bb)/2)+QPointF(0,-42),texto)
                 p.setPen(QPen(QColor(color),1.5)); p.setBrush(QColor(tema.CAMPO if self.escuro else '#ffffff'))
                 for key,P,Q in [('rotula_i',A,B),('rotula_j',B,A)]:
                     if b.get(key):
@@ -333,12 +339,13 @@ class Desenho(Selecao,QWidget):
                 for k in range(len(pts)-1): self.diagrama_hits.append((outline[k],outline[k+1],i,key,pts[k],pts[k+1]))
                 notable={0,len(pts)-1,min(range(len(pts)),key=lambda k:pts[k].get(key,0)),max(range(len(pts)),key=lambda k:pts[k].get(key,0))}
                 for ch in b.get('pontuais',[]): notable.add(min(range(len(pts)),key=lambda k:abs(pts[k]['x']-ch['x'])))
+                if compacto:notable={pi for bi,pi in rotulos_extremos if bi==i}
                 p.setPen(diagram_color)
                 f=ed.formatador();unit=f.unidade(key)
                 if ed.preferencias['mostrar_valores']:
-                    for k in sorted(notable):self.rotular_valor(p,outline[k],f'{f.esforco(pts[k].get(key,0))} {unit}')
+                    for k in sorted(notable):self.rotular_valor(p,outline[k],(f'B{i+1} / x={f.comprimento(pts[k]["x"])} m: ' if compacto else '')+f'{f.esforco(pts[k].get(key,0))} {unit}')
                 from estrutural.ui.anotacoes import centroide,sinal
-                for sign in (-1,1):
+                for sign in (() if compacto else (-1,1)):
                     groups=[];current=[]
                     for k,v in enumerate(pts):
                         if v.get(key,0)*sign>0:current.append(k)
@@ -348,17 +355,18 @@ class Desenho(Selecao,QWidget):
                         if max(abs(pts[k].get(key,0)) for k in group)<maximum*.12:continue
                         mid=centroide([bases[group[0]]]+[outline[k] for k in group]+[bases[group[-1]]])
                         if mid is not None:p.setBrush(self.palette().base());sinal(p,mid,'+' if sign==1 else '−',diagram_color);p.setBrush(Qt.NoBrush)
-        if projecao_arco is not None:
-            q,x,y=projecao_arco;p.setPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'))
-            self.rotular_valor(p,self.tela(x,y)+QPointF(0,-42),f'{q:g} kN/m (projeção X)')
+        for j,ch in enumerate(projecoes):
+            x=(min(n['x'] for n in ed.modelo['nos'])+max(n['x'] for n in ed.modelo['nos']))/2
+            y=max(n['y'] for n in ed.modelo['nos']);p.setPen(QColor(tema.DESTAQUE_TEXTO if self.escuro else '#0078d7'))
+            self.rotular_valor(p,self.tela(x,y)+QPointF(0,-42-j*28),f"{ch['q']:g} kN/m (projeção {ch['projecao']})")
         for i,n in enumerate(ed.modelo['nos']):
             P = self.tela(n['x'],n['y'])
             p.setPen(QPen(QColor(color),1))
             p.setBrush(QColor(tema.DESTAQUE))
-            p.drawEllipse(P,4,4)
+            p.drawEllipse(P,2 if compacto else 4,2 if compacto else 4)
             labels=ed.modelo.get('exemplo',{}).get('rotulos_nos',[])
             label=f'{labels[i]} ({i+1})' if i<len(labels) else str(i+1)
-            p.drawText(P+QPointF(7,-7),tr(label))
+            if i in nomes:p.drawText(P+QPointF(7,-7),tr(label))
             from estrutural.core.apoios import direcao_barra
             desenhar_apoio(p,ed.modelo,i,P,color,angulo=angulo_apoio(ed.modelo,i) if ed.modelo['tipo']=='Grelha' else None);desenhar_molas(p,n,P,color,direcao_barra(ed.modelo,i),ed.modelo['tipo']=='Grelha')
             if ed.no_selecionado==i:p.setBrush(Qt.NoBrush);p.setPen(QPen(QColor(tema.DESTAQUE_TEXTO),1.5));p.drawEllipse(P,8,8)
@@ -442,7 +450,7 @@ class Desenho(Selecao,QWidget):
         for dx,dy in offsets:
             candidate=QRectF(max(2,min(self.width()-w-2,base.x()+dx)),max(2,min(self.height()-h-2,base.y()+dy)),w,h)
             if not any(candidate.intersects(old) for old in self.rotulos_valores):rect=candidate;break
-        if rect is None:rect=candidate
+        if rect is None:return
         self.rotulos_valores.append(rect.adjusted(-2,-2,2,2));p.save()
         nearest=QPointF(max(rect.left(),min(anchor.x(),rect.right())),max(rect.top(),min(anchor.y(),rect.bottom())))
         if (nearest-anchor).manhattanLength()>18:p.drawLine(anchor,nearest)
@@ -833,6 +841,8 @@ class Editor(JanelaPrincipal):
             colors=('#4fa3ff','#c79bff','#55d6b1') if self.noturno.isChecked() else ('#0078d7','#8040a0','#00796b')
             self.legenda.setText(f'Sinais: <span style="color:{colors[0]}">N+ tração</span> · <span style="color:{colors[1]}">V+ força local esquerda</span> · <span style="color:{colors[2]}">M+ sagente, fibra inferior</span> · momentos anti-horários.')
             self.legenda.setToolTip('Diagramas: escala comum por esforço; leitura interpolada entre amostras.')
+            from estrutural.ui.rotulos import arco_denso
+            if arco_denso(self.modelo):self.legenda.setText('Arco: extremos rotulados; passe o mouse para consultar cada barra. A geometria continua discretizada em barras retas.')
 
     def selecionar_ferramenta(self,nome):
         self.canvas.cancelar_selecao()

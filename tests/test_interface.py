@@ -73,7 +73,7 @@ class Interface(unittest.TestCase):
         from PyQt5.QtWidgets import QDialogButtonBox
         self.w.exemplo();original=self.w.modelo['barras'][0].copy()
         QTimer.singleShot(40,lambda:self.app.activeModalWidget().findChild(QDialogButtonBox).button(QDialogButtonBox.Ok).click())
-        self.w.criar_arco();self.assertEqual(len(self.w.modelo['barras']),21);self.assertEqual(self.w.modelo['barras'][0],original)
+        self.w.criar_arco();self.assertEqual(len(self.w.modelo['barras']),97);self.assertEqual(self.w.modelo['barras'][0],original)
         self.w.undo();self.assertEqual(len(self.w.modelo['barras']),1)
     def test_botoes_sem_duplicacao_e_material(self):
         from estrutural.ui.materiais import SeletorMaterial

@@ -44,7 +44,7 @@ class EditorCarga(QDialog):
         self.unidade=QComboBox();self.unidade.addItems(['Metros','% do comprimento']);f.addRow('Posições em',self.unidade)
         self.a=numero(0,0,L);self.b=numero(L,0,L);self.qa=numero(-10);self.qb=numero(-20);self.amp=numero(-10)
         for label,w in [('Início do trecho',self.a),('Fim do trecho',self.b),('q inicial (kN/m)',self.qa),('q final (kN/m)',self.qb),('Acréscimo no centro (kN/m)',self.amp)]:f.addRow(label,w)
-        self.eixo=QComboBox();self.eixo.addItems(['Vertical global Y','Transversal local y']);f.addRow('Direção',self.eixo)
+        self.eixo=QComboBox();self.eixo.addItems(['Vertical global Y','Transversal local y','Horizontal global X']);f.addRow('Direção',self.eixo)
         self.grafico=Grafico(self);row.addWidget(self.grafico,1)
         self.resumo=QLabel();self.resumo.setObjectName('status');self.resumo.setWordWrap(True);v.addWidget(self.resumo)
         self.painel_pontos=QWidget();pv=QVBoxLayout(self.painel_pontos);self.tabela=QTableWidget(2,2);self.tabela.setHorizontalHeaderLabels(['x na barra (m)','q (kN/m)'])
@@ -56,7 +56,7 @@ class EditorCarga(QDialog):
         self.painel_formula=QWidget();fv=QVBoxLayout(self.painel_formula);fv.addWidget(QLabel('x em metros desde o nó inicial; L = comprimento total. Use x^2, sin(pi*x/L), etc.'))
         self.formula=QLineEdit('-10*sin(pi*x/L)');fv.addWidget(self.formula);example=QPushButton('Exemplo: parábola −10·(x/L)²');example.clicked.connect(lambda:self.formula.setText('-10*(x/L)^2'));fv.addWidget(example);self.painel_formula.hide();v.addWidget(self.painel_formula)
         self.avancado.toggled.connect(self.painel_formula.setVisible);self.avancado.toggled.connect(self.atualizar)
-        help=QLabel('Valores negativos atuam em −Y ou −y, por metro real de barra (não por projeção). Na parábola/senoide, o acréscimo é somado à reta entre q inicial e final. Pontos são unidos por segmentos lineares.');help.setWordWrap(True);v.addWidget(help)
+        help=QLabel('Valores negativos atuam no sentido negativo do eixo escolhido, por metro real de barra (não por projeção). Na parábola/senoide, o acréscimo é somado à reta entre q inicial e final. Pontos são unidos por segmentos lineares.');help.setWordWrap(True);v.addWidget(help)
         buttons=QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel);buttons.button(QDialogButtonBox.Ok).setText('Aplicar carga');buttons.button(QDialogButtonBox.Cancel).setText('Cancelar');v.addWidget(buttons);buttons.accepted.connect(self.aplicar);buttons.rejected.connect(self.reject)
         self.tipo.currentTextChanged.connect(self.mudar_tipo);self.unidade.currentIndexChanged.connect(self.converter)
         for w in (self.a,self.b,self.qa,self.qb,self.amp):w.valueChanged.connect(self.atualizar)
@@ -95,7 +95,7 @@ class EditorCarga(QDialog):
         self.busy=False;self.atualizar()
     def montar(self):
         factor=self.L/100 if self.percent else 1;a,b=self.a.value()*factor,self.b.value()*factor;name=self.tipo.currentText()
-        ch={'a':a,'b':b,'eixo':['global_y','local_y'][self.eixo.currentIndex()],'descricao':name}
+        ch={'a':a,'b':b,'eixo':['global_y','local_y','global_x'][self.eixo.currentIndex()],'descricao':name}
         if name=='Por pontos' and not self.avancado.isChecked():
             try:pontos=sorted([float(self.tabela.item(i,j).text().replace(',','.')) for j in range(2)] for i in range(self.tabela.rowCount()))
             except (AttributeError,ValueError):raise ValueError('Preencha x e q em todas as linhas.')

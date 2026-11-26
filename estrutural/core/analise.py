@@ -4,7 +4,7 @@ Forças nodais globais positivas em +x, +y e anti-horário.
 N positivo em tração; V = força local esquerda; M positivo sagente.
 """
 import math
-from estrutural.core.cargas import integrar
+from estrutural.core.cargas import integrar,componentes_locais
 
 
 class ErroModelo(ValueError):
@@ -145,8 +145,7 @@ def analisar(modelo):
                 deriv=[0,(-6*t+6*t*t)/L,1-4*t+3*t*t,0,(6*t-6*t*t)/L,-2*t+3*t*t]
                 for u in range(6): f[u]+=deriv[u]*m
             for charge in b.get('distribuidas',[]):
-                if charge.get('eixo','local_y') not in ('local_y','global_y'):
-                    raise ErroModelo('Eixo de carga aceita local_y ou global_y; cargas projetadas não estão implementadas.')
+                fx_factor,fy_factor=componentes_locais(charge,c,s)
                 start,end=charge.get('a',0),charge.get('b',L)
                 if not 0<=start<end<=L: raise ErroModelo('Trecho de carga fora da barra.')
                 for u in range(6):
@@ -154,7 +153,7 @@ def analisar(modelo):
                         t=x/L
                         return [1-t,1-3*t*t+2*t**3,L*(t-2*t*t+t**3),t,3*t*t-2*t**3,L*(-t*t+t**3)][u]
                     axial = u in (0,3)
-                    factor=(0 if axial else 1) if charge.get('eixo','local_y')=='local_y' else (s if axial else c)
+                    factor=fx_factor if axial else fy_factor
                     if factor: f[u]+=factor*integrar(charge,L,shape)
             for charge in b.get('pontuais',[]):
                 x=charge['x']
@@ -193,32 +192,8 @@ def analisar(modelo):
             vals = resolver([[ok[i][j] for j in rel] for i in rel], [of[i]-sum(ok[i][j]*dl[j] for j in range(6) if j not in rel) for i in rel])
             for i,v in zip(rel,vals): dl[i] = v
         ends = [sum(row[j]*dl[j] for j in range(len(dl)))-of[i] for i,row in enumerate(ok)]
-        points = []
-        positions={L*p/40 for p in range(41)}
-        for ch in b.get('pontuais',[]):
-            positions.update([max(0,ch['x']-1e-9*L),ch['x'],min(L,ch['x']+1e-9*L)])
-        for ch in b.get('distribuidas',[]):
-            positions.update([ch.get('a',0),ch.get('b',L)])
-            positions.update(p[0] for p in ch.get('pontos',[]))
-        for x in sorted(positions):
-            N = -ends[0]
-            V = 0 if trelica else ends[1]+b.get('q',0)*x
-            M = 0 if trelica else -ends[2]+ends[1]*x+b.get('q',0)*x*x/2
-            if not trelica:
-                c,s=T[0][0],T[0][1]
-                for ch in b.get('pontuais',[]):
-                    if x>=ch['x']:
-                        fx,fy=ch.get('fx',0),ch.get('fy',0)
-                        if ch.get('global',False): fx,fy=c*fx+s*fy,-s*fx+c*fy
-                        N-=fx; V+=fy; M+=fy*(x-ch['x'])-ch.get('m',0)
-                for ch in b.get('distribuidas',[]):
-                    a,z=ch.get('a',0),ch.get('b',L)
-                    h=max(0,min(x,z)-a)
-                    total=integrar(ch,L,lambda t:1,a,a+h)
-                    moment=integrar(ch,L,lambda t:x-t,a,a+h)
-                    fx,fy=(0,1) if ch.get('eixo','local_y')=='local_y' else (s,c)
-                    N-=fx*total; V+=fy*total; M+=fy*moment
-            points.append({'x':x,'N':N,'V':V,'M':M})
+        from estrutural.core.esforcos import amostrar
+        points=amostrar(b,ends,L,T[0][0],T[0][1],tipo)
         resultados.append({'L':L,'extremos':ends,'pontos':points,'deslocamentos_locais':dl})
     total=[R[i]+F[i] for i in range(n)]
     equilibrio=[sum(total[g*i] for i in range(len(nos))),sum(total[g*i+1] for i in range(len(nos))),sum(nos[i]['x']*total[g*i+1]-nos[i]['y']*total[g*i]+(0 if trelica else total[g*i+2]) for i in range(len(nos)))]

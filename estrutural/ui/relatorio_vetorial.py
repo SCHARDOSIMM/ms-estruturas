@@ -16,6 +16,7 @@ from estrutural.core.exibicao import Formatador
 from estrutural.core.idiomas import traduzir
 from estrutural.core.apoios import angulo_visual
 from estrutural.core.cargas import intensidade
+from estrutural.ui.rotulos import arco_denso,nos_rotulados,cargas_projetadas
 from estrutural.ui.projecao_grelha import projetar,angulo_apoio,arco_momento_grelha
 
 INK='#0B1220';BODY='#1E293B';BLUE='#0077B6';CYAN='#00B4D8';SOFT='#64748B';BORDER='#CBD5E1'
@@ -81,6 +82,8 @@ class Figura(Flowable):
         tr=lambda text:traduzir(text,self.f.op.get('idioma','pt_BR'))
         c=self.canv;c.saveState();m,r,f,key=self.m,self.r,self.f,self.key;W,H=self.width,self.height
         c.setStrokeColor(cor(BORDER));c.setLineWidth(.5);c.rect(0,0,W,H)
+        compacto=arco_denso(m);nomes=nos_rotulados(m);projecoes=cargas_projetadas(m) if key is None else []
+        eixos_agrupados={ch['eixo'] for ch in projecoes}
         nos=m['nos'];grid=m['tipo']=='Grelha';view=ProjecaoFigura(m,W,H);point=view.point;scale=view.scale
         def poly(points,fill=False,stroke=True):
             if not points:return
@@ -107,7 +110,8 @@ class Figura(Flowable):
                 points=[(P[0]+raio*math.cos(a),P[1]+raio*math.sin(a)) for a in angles]
             poly(points);arrow(points[-3],points[-1])
         boxes=[(3,4,58,55)] if grid else []
-        for node in nos:
+        for ni,node in enumerate(nos):
+            if ni not in nomes:continue
             x,y=point(node['x'],node['y']);boxes.append((x-3,y-3,18,17))
         def label(anchor,text,color):
             """Bounded white-backed labels keep values readable over diagrams."""
@@ -119,7 +123,8 @@ class Figura(Flowable):
                     if not any(x<bx+bw and x+width>bx and y<by+bh and y+height>by for bx,by,bw,bh in boxes):
                         chosen=(x,y);break
                 if chosen is not None:break
-            x,y=chosen or (max(4,min(W-width-4,ax+5)),max(4,min(H-height-4,ay+8)))
+            if chosen is None:return
+            x,y=chosen
             boxes.append((x-2,y-2,width+4,height+4));c.saveState();c.setStrokeColor(cor(color));c.setLineWidth(.4)
             nearest=(max(x,min(ax,x+width)),max(y,min(ay,y+height)))
             if math.hypot(nearest[0]-ax,nearest[1]-ay)>8:c.line(ax,ay,*nearest)
@@ -131,8 +136,9 @@ class Figura(Flowable):
             boxes.append((8,H-20,pdfmetrics.stringWidth(text,'EstruturalBody',7)+6,14))
         for i,b in enumerate(m['barras']):
             a,z=nos[b['i']],nos[b['j']];A,B=point(a['x'],a['y']),point(z['x'],z['y']);L=r['barras'][i]['L'];ux,uy=(z['x']-a['x'])/L,(z['y']-a['y'])/L
-            c.setStrokeColor(cor(INK));c.setLineWidth(1);c.setDash();c.line(*A,*B);c.setFillColor(cor(SOFT));c.setFont('EstruturalBody',7);c.drawString((A[0]+B[0])/2+3,(A[1]+B[1])/2-13,tr(f'B{i+1}'))
-            boxes.append(((A[0]+B[0])/2+2,(A[1]+B[1])/2-15,18,10))
+            c.setStrokeColor(cor(INK));c.setLineWidth(1);c.setDash();c.line(*A,*B);c.setFillColor(cor(SOFT));c.setFont('EstruturalBody',7);
+            if not compacto:c.drawString((A[0]+B[0])/2+3,(A[1]+B[1])/2-13,tr(f'B{i+1}'))
+            if not compacto:boxes.append(((A[0]+B[0])/2+2,(A[1]+B[1])/2-15,18,10))
             for flag,P,direction in [('rotula_i',A,1),('rotula_j',B,-1)]:
                 if b.get(flag):c.setFillColor(colors.white);c.circle(P[0]+direction*ux*7,P[1]+direction*uy*7,3,stroke=1,fill=1)
             if key in ('N','V','M','T'):
@@ -154,23 +160,25 @@ class Figura(Flowable):
                 cargas=list(b.get('distribuidas',[]))
                 if b.get('q'):cargas.append(dict(a=0,b=L,qa=b['q'],eixo='local_y'))
                 for carga in cargas:
-                    start,end=carga.get('a',0),carga.get('b',L);vals=[intensidade(carga,start+(end-start)*j/8,L) for j in range(9)];mag=max(map(abs,vals)) or 1
-                    vx,vy=(0,1) if grid else (-uy,ux) if carga.get('eixo','local_y')=='local_y' else (0,1);c.setStrokeColor(cor(BLUE));c.setLineWidth(.7);tails=[]
+                    start,end=carga.get('a',0),carga.get('b',L);fractions=[0,.5,1] if compacto else [j/8 for j in range(9)];vals=[intensidade(carga,start+(end-start)*t,L) for t in fractions];mag=max(map(abs,vals)) or 1
+                    vx,vy=(0,1) if grid else (-uy,ux) if carga.get('eixo','local_y')=='local_y' else (1,0) if carga.get('eixo')=='global_x' else (0,1);c.setStrokeColor(cor(BLUE));c.setLineWidth(.7);tails=[]
                     for j,q in enumerate(vals):
-                        x=start+(end-start)*j/8;tip=point(a['x']+ux*x,a['y']+uy*x);tail=(tip[0]-vx*q/mag*27,tip[1]-vy*q/mag*27);tails.append(tail)
-                        if q and abs(q)>=tol:arrow(tail,tip)
+                        x=start+(end-start)*fractions[j];tip=point(a['x']+ux*x,a['y']+uy*x);tail=(tip[0]-vx*q/mag*27,tip[1]-vy*q/mag*27);tails.append(tail)
+                        if q and abs(q)>=tol and (not compacto or j==1):arrow(tail,tip)
                     poly(tails)
                     c.setFillColor(cor(BLUE));load_text=(carga.get('descricao','q(x)')+': ' if carga.get('funcao') or carga.get('pontos') else 'q: ')+f.esforco(min(vals))+' a '+f.esforco(max(vals))+' '+f.op['forca']+'/m'
-                    if not same_q:label(((A[0]+B[0])/2,(A[1]+B[1])/2+(-27 if sum(vals)>=0 else 27)),load_text,BLUE)
+                    if not same_q and carga.get('eixo','local_y') not in eixos_agrupados and (not compacto or i%max(1,len(m['barras'])//4)==0):label(((A[0]+B[0])/2,(A[1]+B[1])/2+(-27 if sum(vals)>=0 else 27)),load_text,BLUE)
                 for carga in b.get('pontuais',[]):
                     x=carga['x'];tip=point(a['x']+ux*x,a['y']+uy*x);fx,fy=carga.get('fx',0),carga.get('fy',0)
                     if not carga.get('global'):fx,fy=ux*fx-uy*fy,uy*fx+ux*fy
                     mag=math.hypot(fx,fy)
-                    if mag>=tol and mag:c.setStrokeColor(cor(BLUE));arrow((tip[0]-fx/mag*30,tip[1]-fy/mag*30),tip);label(tip,f.esforco(mag)+' '+f.unidade('R'),BLUE)
+                    if mag>=tol and mag:c.setStrokeColor(cor(BLUE));arrow((tip[0]-fx/mag*30,tip[1]-fy/mag*30),tip);
+                    if mag>=tol and mag and (not compacto or i%max(1,len(m['barras'])//4)==0):label(tip,f.esforco(mag)+' '+f.unidade('R'),BLUE)
                     if carga.get('m',0) and abs(carga['m'])>=tol:
                         c.setStrokeColor(cor(BLUE));moment(tip,carga['m']);label(tip,f.esforco(carga['m'])+' '+f.unidade('M'),BLUE)
         for i,n in enumerate(nos):
-            x,y=point(n['x'],n['y']);c.setStrokeColor(cor(INK));c.setFillColor(colors.white);c.circle(x,y,2,fill=1,stroke=1);c.setFillColor(cor(INK));c.setFont('EstruturalBody',7);c.drawString(x+4,y+5,tr(str(i+1)))
+            x,y=point(n['x'],n['y']);c.setStrokeColor(cor(INK));c.setFillColor(colors.white);c.circle(x,y,2,fill=1,stroke=1);c.setFillColor(cor(INK));c.setFont('EstruturalBody',7);
+            if i in nomes:c.drawString(x+4,y+5,tr(str(i+1)))
             a=n.get('apoio',[])
             if any(a):
                 c.saveState();c.translate(x,y);c.rotate(-(angulo_apoio(m,i) if grid else angulo_visual(m,i)));c.setLineWidth(.9)
@@ -205,6 +213,8 @@ class Figura(Flowable):
                             moment((x,y),values[j],j);label((x+10,y-15),name+'='+f.esforco(values[j])+' '+f.unidade('M'),BLUE)
                 elif values[2] and abs(values[2])>=tol:
                     moment((x,y),values[2]);label((x+10,y+12),f.esforco(values[2])+' '+f.unidade('M'),BLUE)
+        for j,ch in enumerate(projecoes):
+            label((W/2,H-25-j*20),f.esforco(ch['q'])+' '+f.op['forca']+'/m (projeção '+ch['projecao']+')',BLUE)
         if grid:
             origin=(25,28);c.setFont('EstruturalBody',7)
             for name,delta,color in [('X',projetar(20,0),'#B45309'),('Y',projetar(0,20),'#15803D'),('Z',projetar(0,0,20),'#2563EB')]:
@@ -263,7 +273,8 @@ def gerar_relatorio(path,modelo,resultado,opcoes=None):
         matches=[row for row in summary if row[0]==name];lo=min(matches,key=lambda row:row[2]);hi=max(matches,key=lambda row:row[4]);key=lo[-1];format_value=f.desloc if key=='D' else f.esforco;unit=f.op['deslocamento'] if key=='D' else f.unidade(key)
         rows.append([name+(' |δ|' if key=='D' else '')+' ('+unit+')',format_value(lo[2]),f'B{lo[1]} / x={f.comprimento(lo[3])} m',format_value(hi[4]),f'B{hi[1]} / x={f.comprimento(hi[5])} m'])
     story.append(table(['Resultado','Mínimo','Posição','Máximo','Posição'],rows,[120,65,120,65,134]))
-    story.append(Spacer(1,2 if grid else 10));story.append(p('Extremos da discretização/interpolação. x medido desde o início de cada barra.','mono'))
+    story.append(Spacer(1,2 if grid else 10));story.append(p('Extremos incluem pontos críticos dos esforços. x medido desde o início de cada barra.','mono'))
+    if modelo['tipo']=='Arco':story.append(p('Arco discretizado em barras retas. Compare malhas sucessivas para avaliar a aproximação da geometria.','mono'))
     for i,bloco in enumerate(blocos):
         if i%2==0:story.append(PageBreak())
         story.append(KeepTogether(bloco))
