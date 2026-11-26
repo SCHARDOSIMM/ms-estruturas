@@ -4,7 +4,7 @@
 
 Aplicação desktop desenvolvida por **Matheus Schardosim** em Python para modelar estruturas de barras, aplicar vínculos e carregamentos e interpretar reações, esforços internos e deslocamentos.
 
-**Versão 1.0.4 · Windows 10/11 de 64 bits · Português, inglês e francês**
+**Versão 1.0.5 · Windows 10/11 de 64 bits · Português, inglês e francês**
 
 O instalador, a interface e os resultados exportados estão disponíveis em português, inglês e francês. Selecione **Français** em Configurações ou use o botão de idioma (PT-BR → EN → FR). Consulte [terminologia e verificação do francês](docs/IDIOMA_FR.md).
 

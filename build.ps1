@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $compilerPath)) {
 & $compilerPath instalador.iss
 if ($LASTEXITCODE -ne 0) { throw 'Falha ao compilar instalador.' }
 Copy-Item -LiteralPath 'empacotamento\INSTALACAO.txt' -Destination 'entrega\LEIA-ME.txt'
-$installer = Get-Item -LiteralPath 'entrega\MS-Estruturas-1.0.4-Setup.exe'
+$installer = Get-Item -LiteralPath 'entrega\MS-Estruturas-1.0.5-Setup.exe'
 $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
 Set-Content -LiteralPath 'entrega\SHA256SUMS.txt' -Value "$hash  $($installer.Name)" -Encoding ascii
-Write-Host 'Instalador pronto em entrega\MS-Estruturas-1.0.4-Setup.exe'
+Write-Host 'Instalador pronto em entrega\MS-Estruturas-1.0.5-Setup.exe'

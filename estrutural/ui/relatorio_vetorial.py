@@ -53,7 +53,7 @@ def cabecalho(canvas,doc):
     tr=lambda text:traduzir(text,canvas.idioma)
     if doc.page==1:return
     canvas.saveState();canvas.setFillColor(cor(INK));canvas.setFont('EstruturalMono',7.5);canvas.drawString(54,letter[1]-30,tr('ESTRUTURAL // RESULTADOS'))
-    canvas.setFillColor(cor(SOFT));canvas.drawRightString(letter[0]-54,letter[1]-30,tr('v1.0.4'));canvas.setStrokeColor(cor(BORDER));canvas.setLineWidth(.5);canvas.line(54,letter[1]-36,letter[0]-54,letter[1]-36);canvas.restoreState()
+    canvas.setFillColor(cor(SOFT));canvas.drawRightString(letter[0]-54,letter[1]-30,tr('v1.0.5'));canvas.setStrokeColor(cor(BORDER));canvas.setLineWidth(.5);canvas.line(54,letter[1]-36,letter[0]-54,letter[1]-36);canvas.restoreState()
 
 
 class ProjecaoFigura:
@@ -243,7 +243,7 @@ def gerar_relatorio(path,modelo,resultado,opcoes=None):
     except ZoneInfoNotFoundError:date=datetime.now(timezone(timedelta(hours=-3))).strftime('%d/%m/%Y')
     date=(opcoes or {}).get('data_relatorio',date)
     nome=modelo.get('nome') or traduzir(modelo.get('exemplo',{}).get('nome') or 'Sem título',f.op.get('idioma','pt_BR'));grid=modelo['tipo']=='Grelha'
-    story=[p('■  RELATÓRIO DE RESULTADOS // ESTRUTURAL','mono'),p(nome,'title',traduz=False),p(f'{date}  |  {modelo["tipo"]}  |  v1.0.4','mono'),sec(1,'Estrutura'),Figura(modelo,resultado,f,height=230 if grid else 160),Spacer(1,6)]
+    story=[p('■  RELATÓRIO DE RESULTADOS // ESTRUTURAL','mono'),p(nome,'title',traduz=False),p(f'{date}  |  {modelo["tipo"]}  |  v1.0.5','mono'),sec(1,'Estrutura'),Figura(modelo,resultado,f,height=230 if grid else 160),Spacer(1,6)]
     story.append(p('FIG. 01 // Modelo, apoios e cargas. Geometria em m.','mono'))
     story.append(sec(2,'Reações de apoio'))
     force=f.op['forca'];moment=force+'·m'

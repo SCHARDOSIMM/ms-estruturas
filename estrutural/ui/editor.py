@@ -502,7 +502,7 @@ class Editor(JanelaPrincipal):
     def __init__(self,config=None):
         self._persistencia_pronta=False;self._aplicando_preferencias=True
         super().__init__(config=config)
-        self.setWindowTitle('MS Estruturas  1.0.4');self.setMinimumSize(1000,560);self.resize(1360,900)
+        self.setWindowTitle('MS Estruturas  1.0.5');self.setMinimumSize(1000,560);self.resize(1360,900)
         from pathlib import Path
         from PyQt5.QtGui import QIcon
         self.logo=QIcon(str(Path(__file__).with_name('assets')/'ms-estruturas.svg'));self.setWindowIcon(self.logo)

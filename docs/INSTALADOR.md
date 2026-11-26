@@ -1,8 +1,8 @@
-# Instalador MS Estruturas 1.0.4
+# Instalador MS Estruturas 1.0.5
 
 ## Para usar e distribuir
 
-O produto para o usuário é **entrega/MS-Estruturas-1.0.4-Setup.exe**.
+O produto para o usuário é **entrega/MS-Estruturas-1.0.5-Setup.exe**.
 Instale e abra **MS Estruturas** pelo menu Iniciar.
 O assistente oferece opções para criar um atalho na área de trabalho e abrir
 o programa ao concluir. Em uma instalação nova, ambas começam desmarcadas.

@@ -1,4 +1,4 @@
-MS Estruturas 1.0.4
+MS Estruturas 1.0.5
 Criado por Matheus Schardosim
 
 Este aplicativo inclui o interpretador Python e as bibliotecas necessárias à
